@@ -32,6 +32,7 @@ public class PingData extends MeasurementData {
     private Integer round;
     @Column(name = "measurement_prefix", tag = true)
     private String measurementPrefix;
+    // 毫秒
     @Column(name = "RTT")
     private Float rtt;
     @Column(timestamp = true)
@@ -43,9 +44,23 @@ public class PingData extends MeasurementData {
     @Column(name = "city", tag = true)
     private String city;
 
+    private String dest;
+
+    public String getDest() {
+        if (dest == null) {
+            dest = destA + "." + destB + "." + destC + "." + destD;
+        }
+        return dest;
+    }
+
     @Override
     public String getType() {
         return "ping";
+    }
+
+    public int getMicrosecondRTT() {
+        float rtt_ = rtt;
+        return (int)(rtt_*1000);
     }
 
     @Override
@@ -63,4 +78,5 @@ public class PingData extends MeasurementData {
         this.rtt = pingData.rtt;
         this.time = pingData.time;
     }
+
 }

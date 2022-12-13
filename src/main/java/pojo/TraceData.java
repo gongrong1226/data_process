@@ -69,4 +69,13 @@ public class TraceData extends MeasurementData {
         this.rtt = traceData.rtt;
         this.time = traceData.time;
     }
+
+    public String getDest() {
+        return destA + "." + destB + "." + destC + "." + destD;
+    }
+
+    public int getMicrosecondsRTT() {
+        float rtt_ = rtt;
+        return (int)(rtt_*1000);
+    }
 }
