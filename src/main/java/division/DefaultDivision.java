@@ -12,6 +12,7 @@ import java.io.File;
 import java.net.URL;
 
 /**
+ * 线程安全
  * @author ZT 2022-12-14 16:41
  */
 public class DefaultDivision extends AbstractDivision {

@@ -66,4 +66,26 @@ public abstract class AbstractCell implements Cell {
         return path;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        AbstractCell that = (AbstractCell) o;
+
+        if (feature != null ? !feature.equals(that.feature) : that.feature != null) return false;
+        if (path != null ? !path.equals(that.path) : that.path != null) return false;
+        if (RTTs != null ? !RTTs.equals(that.RTTs) : that.RTTs != null) return false;
+        return IPs != null ? IPs.equals(that.IPs) : that.IPs == null;
+    }
+
+    @Override
+    public String toString() {
+        return "AbstractCell{" +
+                "feature=" + feature +
+                ", path=" + path +
+                ", RTTs=" + RTTs +
+                ", IPs=" + IPs +
+                '}';
+    }
 }

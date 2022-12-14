@@ -1,6 +1,7 @@
 package division;
 
 import dao.TracerouteReader;
+import division.strategy.ASPathCountryCSegCellLocator;
 import division.strategy.CellLocator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,7 +16,13 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
+ * 主要是CellLocator，关系到单元格划分的策略，包含traceroute到高级别路径（AS路径等）的转换
+ * 其次是tracerouteReader， 这个是关乎到ip到traceroute路径的映射
+ *
  * @author ZT 2022-12-06 16:49
+ * @see division.strategy.CellLocator
+ * @see ASPathCountryCSegCellLocator
+ * @see dao.questdb.QuestTracerouteReader
  */
 public abstract class AbstractDivision implements Division {
 
@@ -73,5 +80,9 @@ public abstract class AbstractDivision implements Division {
         ConcurrentMap<String, Cell> stringCellConcurrentMap = cellsMapHolder.get();
         Collection<Cell> values = stringCellConcurrentMap.values();
         return new ArrayList<>(values);
+    }
+
+    public void setTracerouteReader(TracerouteReader tracerouteReader) {
+        this.tracerouteReader = tracerouteReader;
     }
 }

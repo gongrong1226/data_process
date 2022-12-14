@@ -42,4 +42,29 @@ public class ASPathCountryCSegCell extends AbstractCell {
     public String getcSegment() {
         return cSegment;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+
+        ASPathCountryCSegCell that = (ASPathCountryCSegCell) o;
+
+        if (cSegment != null ? !cSegment.equals(that.cSegment) : that.cSegment != null) return false;
+        if (country != null ? !country.equals(that.country) : that.country != null) return false;
+        return super.equals(o);
+    }
+
+    @Override
+    public String toString() {
+        return "ASPathCountryCSegCell{" +
+                "cSegment='" + cSegment + '\'' +
+                ", country='" + country + '\'' +
+                ", feature=" + feature +
+                ", path=" + path +
+                ", RTTs=" + RTTs +
+                ", IPs=" + IPs +
+                '}';
+    }
 }

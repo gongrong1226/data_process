@@ -44,13 +44,8 @@ public class PingData extends MeasurementData {
     @Column(name = "city", tag = true)
     private String city;
 
-    private String dest;
-
     public String getDest() {
-        if (dest == null) {
-            dest = destA + "." + destB + "." + destC + "." + destD;
-        }
-        return dest;
+        return destA + "." + destB + "." + destC + "." + destD;
     }
 
     @Override
@@ -60,7 +55,7 @@ public class PingData extends MeasurementData {
 
     public int getMicrosecondRTT() {
         float rtt_ = rtt;
-        return (int)(rtt_*1000);
+        return (int) (rtt_ * 1000);
     }
 
     @Override

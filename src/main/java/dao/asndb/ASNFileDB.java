@@ -171,6 +171,7 @@ public class ASNFileDB implements IP2ASN {
             return 0;
         }
         AddressWithASN key1 = (AddressWithASN) node.getKey();
+//        logger.debug(String.format("query result is %s for IP %s", key1.asn, iPv4Address));
         return key1.asn;
     }
 
