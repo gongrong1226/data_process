@@ -99,9 +99,10 @@ public class TraceDataFileWriter extends AbstractTraceDataWriter {
 
         /**
          * 代理写，加上了访问计数操作
+         *
          * @param simpleTraceData data
          */
-        public void write(SimpleTraceData simpleTraceData) {
+        public void write(Traceroute.SimpleTraceData simpleTraceData) {
             TraceDatabase traceDatabase = accessDatabase();
             traceDatabase.writeData(simpleTraceData);
             traceDatabase.decAccess();
@@ -136,9 +137,9 @@ public class TraceDataFileWriter extends AbstractTraceDataWriter {
     /**
      * 对应每一个文件的访问
      */
-    static final class FileAccessor implements Iterator<SimpleTraceData> {
+    static final class FileAccessor implements Iterator<Traceroute.SimpleTraceData> {
         static {
-            ProtocolManager.initProtocol(Set.of(AbstractTraceDataWriter.SimpleTraceData.class));
+            ProtocolManager.initProtocol(Set.of(Traceroute.SimpleTraceData.class));
         }
 
         private final Logger logger = LoggerFactory.getLogger(FileAccessor.class);
@@ -174,7 +175,7 @@ public class TraceDataFileWriter extends AbstractTraceDataWriter {
             }
         }
 
-        public synchronized void write(SimpleTraceData data) {
+        public synchronized void write(Traceroute.SimpleTraceData data) {
             // 剩余容量不足就先写文件
             if (MAX_CAPACITY - serializeByteBuf.writerIndex() < 100) {
                 flush();
@@ -218,8 +219,8 @@ public class TraceDataFileWriter extends AbstractTraceDataWriter {
         }
 
         @Override
-        public SimpleTraceData next() {
-            return (SimpleTraceData) ProtocolManager.read(deserializeByteBuf);
+        public Traceroute.SimpleTraceData next() {
+            return (Traceroute.SimpleTraceData) ProtocolManager.read(deserializeByteBuf);
         }
 
         public File getFile() {
@@ -333,7 +334,7 @@ public class TraceDataFileWriter extends AbstractTraceDataWriter {
             return fileAccessor;
         }
 
-        public void writeData(SimpleTraceData simpleTraceData) {
+        public void writeData(Traceroute.SimpleTraceData simpleTraceData) {
             FileAccessor fileAccessor = getFileAccessor(simpleTraceData.getDest());
             if (fileAccessor == null) {
                 logger.error(String.format("Cannot get fileAccessor for IP %s", simpleTraceData.getDest()));
@@ -407,49 +408,8 @@ public class TraceDataFileWriter extends AbstractTraceDataWriter {
      * @param simpleTraceData data
      */
     @Override
-    protected void write(SimpleTraceData simpleTraceData) {
+    protected void write(Traceroute.SimpleTraceData simpleTraceData) {
         databaseProxy.write(simpleTraceData);
-    }
-
-    static class TracerouteBuilder {
-        StringBuilder sb;
-
-        public TracerouteBuilder() {
-            sb = new StringBuilder(128);
-        }
-
-        Traceroute build(String dest, List<SimpleTraceData> traces, StringBuilder sb) {
-            sb.delete(0, sb.length());
-            // 按照跳数从近到远排序
-            traces.sort(Comparator.comparingInt(SimpleTraceData::getHop));
-            // 表示当前要处理第idx跳的数据
-            int idx = 1;
-            long maxTime = 0L;
-            boolean arrived = false;
-            for (SimpleTraceData trace : traces) {
-                maxTime = Math.max(trace.getRecvTimestamp(), maxTime);
-                int hop = trace.getHop();
-                while (idx < hop) {
-                    sb.append("*|");
-                    idx++;
-                }
-                String response = trace.getResponse();
-                sb.append(response);
-                sb.append('|');
-                if (response.equals(dest)) {
-                    arrived = true;
-                    break;
-                }
-                idx++;
-            }
-            sb.deleteCharAt(sb.length() - 1);
-            String tracerouteString = sb.toString();
-            return new Traceroute(dest, tracerouteString, arrived, maxTime);
-        }
-
-        Traceroute build(String dest, List<SimpleTraceData> traces) {
-            return build(dest, traces, sb);
-        }
     }
 
 
@@ -479,20 +439,20 @@ public class TraceDataFileWriter extends AbstractTraceDataWriter {
         long startTime = System.currentTimeMillis();
         // 获取所有文件
         List<FileAccessor> allFileAccessors = traceDatabase.getAllFileAccessors();
-        TracerouteBuilder tracerouteBuilder = new TracerouteBuilder();
+        Traceroute.TracerouteBuilder tracerouteBuilder = new Traceroute.TracerouteBuilder();
         for (FileAccessor fileAccessor : allFileAccessors) {
             logger.info(String.format("building traceroute -- file %s", fileAccessor.getFile().getAbsolutePath()));
             long fileStartTime = System.currentTimeMillis();
             // 获取该文件下的所有trace数据
-            List<SimpleTraceData> list = new ArrayList<>(32768);
+            List<Traceroute.SimpleTraceData> list = new ArrayList<>(32768);
             while (fileAccessor.hasNext()) {
-                SimpleTraceData next = fileAccessor.next();
+                Traceroute.SimpleTraceData next = fileAccessor.next();
                 list.add(next);
             }
             // 根据IP分组
-            Map<String, List<SimpleTraceData>> destTraces = list.stream()
+            Map<String, List<Traceroute.SimpleTraceData>> destTraces = list.stream()
                     .filter(d -> d != null && d.getDest() != null)
-                    .collect(Collectors.groupingBy(SimpleTraceData::getDest));
+                    .collect(Collectors.groupingBy(Traceroute.SimpleTraceData::getDest));
 //                    // 跳数少的在前面
 //                    .sorted(Comparator.comparingInt(SimpleTraceData::getHop))
 //                    // 以dest为key，进行groupby
@@ -504,7 +464,7 @@ public class TraceDataFileWriter extends AbstractTraceDataWriter {
                     .parallel()
                     .map(stringListEntry -> {
                         String dest = stringListEntry.getKey();
-                        List<SimpleTraceData> value = stringListEntry.getValue();
+                        List<Traceroute.SimpleTraceData> value = stringListEntry.getValue();
                         return tracerouteBuilder.build(dest, value, new StringBuilder());
                     })
                     .collect(Collectors.toList());

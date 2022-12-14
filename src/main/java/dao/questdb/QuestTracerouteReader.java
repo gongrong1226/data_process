@@ -24,6 +24,10 @@ public class QuestTracerouteReader implements TracerouteReader {
     private final static int INITIAL_CONNECTIONS = 10;
     private final static int MAX_CONNECTIONS = 32;
 
+    public final static String TUNIS_TRACEROUTE_TABLE = "tunis_traceroute";
+
+    public final static String DEFAULT_URL = "jdbc:postgresql://localhost:8812/qdb";
+
     /**
      * TODO Refactor， 放到DAO注解当中
      */

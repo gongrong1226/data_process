@@ -39,7 +39,7 @@ public class ASNFileDB implements IP2ASN {
 
     private final File dbFile;
 
-    private IPv4AddressTrie trie;
+    private volatile IPv4AddressTrie trie;
 
     public ASNFileDB(File dbFile) {
         this.dbFile = dbFile;

@@ -20,7 +20,7 @@ public class TraceDataFileWriterTest {
     }
 
 
-    private static AbstractTraceDataWriter.SimpleTraceData genRandomSimpleTraceData() {
+    private static Traceroute.SimpleTraceData genRandomSimpleTraceData() {
         Random random = new Random();
         String dest = int2IP(random.nextInt());
         String response = int2IP(random.nextInt());
@@ -29,7 +29,7 @@ public class TraceDataFileWriterTest {
         Instant time = Instant.now();
         long epochSecond = time.getEpochSecond();
         epochSecond = epochSecond * 1_000_000L + time.getNano();
-        return new AbstractTraceDataWriter.SimpleTraceData(dest, response, hop, RTT, epochSecond);
+        return new Traceroute.SimpleTraceData(dest, response, hop, RTT, epochSecond);
     }
 
     public static class FileAccessorTest {
@@ -46,16 +46,16 @@ public class TraceDataFileWriterTest {
             }
 
             int size = 1000;
-            List<AbstractTraceDataWriter.SimpleTraceData> expected = new ArrayList<>(size);
+            List<Traceroute.SimpleTraceData> expected = new ArrayList<>(size);
             for (int i = 0; i < size; i++) {
                 var data = genRandomSimpleTraceData();
                 expected.add(data);
                 fileAccessor.write(data);
             }
             fileAccessor.flush();
-            List<AbstractTraceDataWriter.SimpleTraceData> actual = new ArrayList<>(size);
+            List<Traceroute.SimpleTraceData> actual = new ArrayList<>(size);
             while (fileAccessor.hasNext()) {
-                AbstractTraceDataWriter.SimpleTraceData next = fileAccessor.next();
+                Traceroute.SimpleTraceData next = fileAccessor.next();
                 actual.add(next);
             }
             File file = new File(path);
@@ -68,19 +68,19 @@ public class TraceDataFileWriterTest {
 
         @Test
         public void TestBuildTraceroute() {
-            List<AbstractTraceDataWriter.SimpleTraceData> allTraces = new ArrayList<>();
+            List<Traceroute.SimpleTraceData> allTraces = new ArrayList<>();
             // 测试可达
-            TraceDataFileWriter.TracerouteBuilder tracerouteBuilder = new TraceDataFileWriter.TracerouteBuilder();
+            Traceroute.TracerouteBuilder tracerouteBuilder = new Traceroute.TracerouteBuilder();
             String dest1 = "1.0.0.1";
-            List<AbstractTraceDataWriter.SimpleTraceData> tmp = List.of(
-                    new AbstractTraceDataWriter.SimpleTraceData(dest1, "1.0.0.2", 2, 10, 111L),
-                    new AbstractTraceDataWriter.SimpleTraceData(dest1, "1.0.0.9", 9, 10, 111L),
-                    new AbstractTraceDataWriter.SimpleTraceData(dest1, "1.0.0.1", 10, 10, 1100L),
-                    new AbstractTraceDataWriter.SimpleTraceData(dest1, "1.0.0.3", 3, 10, 111L),
-                    new AbstractTraceDataWriter.SimpleTraceData(dest1, "1.0.0.8", 8, 10, 111L)
+            List<Traceroute.SimpleTraceData> tmp = List.of(
+                    new Traceroute.SimpleTraceData(dest1, "1.0.0.2", 2, 10, 111L),
+                    new Traceroute.SimpleTraceData(dest1, "1.0.0.9", 9, 10, 111L),
+                    new Traceroute.SimpleTraceData(dest1, "1.0.0.1", 10, 10, 1100L),
+                    new Traceroute.SimpleTraceData(dest1, "1.0.0.3", 3, 10, 111L),
+                    new Traceroute.SimpleTraceData(dest1, "1.0.0.8", 8, 10, 111L)
             );
             allTraces.addAll(tmp);
-            ArrayList<AbstractTraceDataWriter.SimpleTraceData> traces1 = new ArrayList<>(tmp);
+            ArrayList<Traceroute.SimpleTraceData> traces1 = new ArrayList<>(tmp);
             Traceroute expectedTraceroute1 = new Traceroute(dest1, "*|1.0.0.2|1.0.0.3|*|*|*|*|1.0.0.8|1.0.0.9|1.0.0.1", true, 1100L);
             Traceroute actualTraceroute1 = tracerouteBuilder.build(dest1, traces1);
             Assert.assertEquals(expectedTraceroute1, actualTraceroute1);
@@ -88,26 +88,26 @@ public class TraceDataFileWriterTest {
             // 测试不可达
             String dest2 = "2.0.0.1";
             tmp = List.of(
-                    new AbstractTraceDataWriter.SimpleTraceData(dest2, "2.0.0.2", 2, 10, 111L),
-                    new AbstractTraceDataWriter.SimpleTraceData(dest2, "2.0.0.9", 9, 10, 1100L),
-                    new AbstractTraceDataWriter.SimpleTraceData(dest2, "2.0.0.3", 3, 10, 111L),
-                    new AbstractTraceDataWriter.SimpleTraceData(dest2, "2.0.0.8", 8, 10, 111L)
+                    new Traceroute.SimpleTraceData(dest2, "2.0.0.2", 2, 10, 111L),
+                    new Traceroute.SimpleTraceData(dest2, "2.0.0.9", 9, 10, 1100L),
+                    new Traceroute.SimpleTraceData(dest2, "2.0.0.3", 3, 10, 111L),
+                    new Traceroute.SimpleTraceData(dest2, "2.0.0.8", 8, 10, 111L)
             );
             allTraces.addAll(tmp);
-            ArrayList<AbstractTraceDataWriter.SimpleTraceData> traces2 = new ArrayList<>(tmp);
+            ArrayList<Traceroute.SimpleTraceData> traces2 = new ArrayList<>(tmp);
             Traceroute expectedTraceroute2 = new Traceroute(dest2, "*|2.0.0.2|2.0.0.3|*|*|*|*|2.0.0.8|2.0.0.9", false, 1100L);
             Traceroute actualTraceroute2 = tracerouteBuilder.build(dest2, traces2);
             Assert.assertEquals(expectedTraceroute2, actualTraceroute2);
 
             // 测试流分组逻辑
-            Map<String, List<AbstractTraceDataWriter.SimpleTraceData>> destTraces = allTraces.stream()
+            Map<String, List<Traceroute.SimpleTraceData>> destTraces = allTraces.stream()
                     .filter(d -> d != null && d.getDest() != null)
-                    .collect(Collectors.groupingBy(AbstractTraceDataWriter.SimpleTraceData::getDest));
+                    .collect(Collectors.groupingBy(Traceroute.SimpleTraceData::getDest));
             //根据IP分组
             List<Traceroute> actualTraceroutes = destTraces.entrySet().stream()
                     .map(stringListEntry -> {
                         String dest = stringListEntry.getKey();
-                        List<AbstractTraceDataWriter.SimpleTraceData> value = stringListEntry.getValue();
+                        List<Traceroute.SimpleTraceData> value = stringListEntry.getValue();
                         return tracerouteBuilder.build(dest, value, new StringBuilder());
                     })
                     .collect(Collectors.toList());
@@ -124,29 +124,29 @@ public class TraceDataFileWriterTest {
 
     @Test
     public void TestTraceDataFileWriter() {
-        List<AbstractTraceDataWriter.SimpleTraceData> allTraces = new ArrayList<>();
+        List<Traceroute.SimpleTraceData> allTraces = new ArrayList<>();
         // traceroute1
         String dest1 = "1.0.0.1";
-        List<AbstractTraceDataWriter.SimpleTraceData> tmp = List.of(
-                new AbstractTraceDataWriter.SimpleTraceData(dest1, "1.0.0.2", 2, 10, 111L),
-                new AbstractTraceDataWriter.SimpleTraceData(dest1, "1.0.0.9", 9, 10, 111L),
-                new AbstractTraceDataWriter.SimpleTraceData(dest1, "1.0.0.1", 10, 10, 1100L),
-                new AbstractTraceDataWriter.SimpleTraceData(dest1, "1.0.0.3", 3, 10, 111L),
-                new AbstractTraceDataWriter.SimpleTraceData(dest1, "1.0.0.8", 8, 10, 111L)
+        List<Traceroute.SimpleTraceData> tmp = List.of(
+                new Traceroute.SimpleTraceData(dest1, "1.0.0.2", 2, 10, 111L),
+                new Traceroute.SimpleTraceData(dest1, "1.0.0.9", 9, 10, 111L),
+                new Traceroute.SimpleTraceData(dest1, "1.0.0.1", 10, 10, 1100L),
+                new Traceroute.SimpleTraceData(dest1, "1.0.0.3", 3, 10, 111L),
+                new Traceroute.SimpleTraceData(dest1, "1.0.0.8", 8, 10, 111L)
         );
         allTraces.addAll(tmp);
-        ArrayList<AbstractTraceDataWriter.SimpleTraceData> traces1 = new ArrayList<>(tmp);
+        ArrayList<Traceroute.SimpleTraceData> traces1 = new ArrayList<>(tmp);
         Traceroute expectedTraceroute1 = new Traceroute(dest1, "*|1.0.0.2|1.0.0.3|*|*|*|*|1.0.0.8|1.0.0.9|1.0.0.1", true, 1100L);
         //traceroute2
         String dest2 = "2.0.0.1";
         tmp = List.of(
-                new AbstractTraceDataWriter.SimpleTraceData(dest2, "2.0.0.2", 2, 10, 111L),
-                new AbstractTraceDataWriter.SimpleTraceData(dest2, "2.0.0.9", 9, 10, 1100L),
-                new AbstractTraceDataWriter.SimpleTraceData(dest2, "2.0.0.3", 3, 10, 111L),
-                new AbstractTraceDataWriter.SimpleTraceData(dest2, "2.0.0.8", 8, 10, 111L)
+                new Traceroute.SimpleTraceData(dest2, "2.0.0.2", 2, 10, 111L),
+                new Traceroute.SimpleTraceData(dest2, "2.0.0.9", 9, 10, 1100L),
+                new Traceroute.SimpleTraceData(dest2, "2.0.0.3", 3, 10, 111L),
+                new Traceroute.SimpleTraceData(dest2, "2.0.0.8", 8, 10, 111L)
         );
         allTraces.addAll(tmp);
-        ArrayList<AbstractTraceDataWriter.SimpleTraceData> traces2 = new ArrayList<>(tmp);
+        ArrayList<Traceroute.SimpleTraceData> traces2 = new ArrayList<>(tmp);
         Traceroute expectedTraceroute2 = new Traceroute(dest2, "*|2.0.0.2|2.0.0.3|*|*|*|*|2.0.0.8|2.0.0.9", false, 1100L);
         ArrayList<Traceroute> expetedTraceroutes = new ArrayList<>(List.of(expectedTraceroute1, expectedTraceroute2));
 
@@ -179,7 +179,7 @@ public class TraceDataFileWriterTest {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        for (AbstractTraceDataWriter.SimpleTraceData trace : allTraces) {
+        for (Traceroute.SimpleTraceData trace : allTraces) {
             traceDataFileWriter.write(trace);
         }
         // check 应该存在1-0和2-0文件

@@ -12,7 +12,7 @@ public class ASPath implements PrintablePath {
 
     private List<AS> path;
 
-    private String pathString;
+    private volatile String pathString;
 
     public ASPath(List<AS> path) {
         this.path = path;
@@ -28,19 +28,33 @@ public class ASPath implements PrintablePath {
 
     public String getPathString() {
         if (pathString == null || pathString.length() == 0) {
-            StringBuilder sb = new StringBuilder();
-            for (AS as : path) {
-                sb.append(as.getASN());
-                sb.append("|");
+            synchronized (this) {
+                if (pathString == null || pathString.length() == 0) {
+                    StringBuilder sb = new StringBuilder();
+                    for (AS as : path) {
+                        sb.append(as.getASN());
+                        sb.append("|");
+                    }
+                    sb.deleteCharAt(sb.length() - 1);
+                    pathString = sb.toString();
+                }
             }
-            sb.deleteCharAt(sb.length() - 1);
-            pathString = sb.toString();
         }
         return pathString;
     }
 
     @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        ASPath asPath = (ASPath) o;
+
+        return path != null ? path.equals(asPath.path) : asPath.path == null;
+    }
+
+    @Override
     public String toString() {
-        return pathString;
+        return getPathString();
     }
 }

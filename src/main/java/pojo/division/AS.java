@@ -7,13 +7,17 @@ public class AS {
 
     private int ASN;
 
+    private String firstIP, lastIP;
+
     /**
      * 单位微秒
      */
     private int RTT;
 
-    public AS(int ASN, int RTT) {
+    public AS(int ASN, String firstIP, String lastIP, int RTT) {
         this.ASN = ASN;
+        this.firstIP = firstIP;
+        this.lastIP = lastIP;
         this.RTT = RTT;
     }
 
@@ -40,4 +44,17 @@ public class AS {
                 ", RTT=" + RTT +
                 '}';
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        AS as = (AS) o;
+
+        if (ASN != as.ASN) return false;
+        if (!firstIP.equals(as.firstIP)) return false;
+        return lastIP.equals(as.lastIP);
+    }
+
 }
