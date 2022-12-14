@@ -3,7 +3,7 @@ package division.strategy;
 import dao.IP2ASN;
 import division.Cell;
 import division.PrintablePath;
-import division.cell.ASPathCountryCell;
+import division.cell.ASPathCountryCSegCell;
 import inet.ipaddr.IPAddressString;
 import inet.ipaddr.ipv4.IPv4Address;
 import org.slf4j.Logger;
@@ -17,18 +17,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 对应于ASPathCountryCell的划分，以ASPath和Country为依据
+ * 对应于ASPathCountryCell的划分，以ASPath、C段和Country为依据
  *
  * @author ZT 2022-12-14 12:11
- * @see division.cell.ASPathCountryCell
+ * @see ASPathCountryCSegCell
  */
-public class ASPathCountryCellLocator extends CellLocator {
+public class ASPathCountryCSegCellLocator extends CellLocator {
 
-    private final Logger logger = LoggerFactory.getLogger(ASPathCountryCellLocator.class);
+    private final Logger logger = LoggerFactory.getLogger(ASPathCountryCSegCellLocator.class);
 
     private final IP2ASN ip2ASN;
 
-    public ASPathCountryCellLocator(IP2ASN ip2ASN) {
+    public ASPathCountryCSegCellLocator(IP2ASN ip2ASN) {
         this.ip2ASN = ip2ASN;
     }
 
@@ -74,6 +74,10 @@ public class ASPathCountryCellLocator extends CellLocator {
         return new ASPath(path);
     }
 
+    public static String extractCSegment(PingData pingData) {
+        return pingData.getDestA() + "." + pingData.getDestB() + "." + pingData.getDestC();
+    }
+
     /**
      * 以ASPath和Country为依据进行划分
      * @param printablePath path
@@ -82,7 +86,7 @@ public class ASPathCountryCellLocator extends CellLocator {
      */
     @Override
     protected String cellKey(PrintablePath printablePath, PingData pingData) {
-        return printablePath.getPathString() + "_" + pingData.getCountry();
+        return printablePath.getPathString() + "_" + pingData.getCountry() + "_" + extractCSegment(pingData);
     }
 
     /**
@@ -96,6 +100,6 @@ public class ASPathCountryCellLocator extends CellLocator {
     @Override
     public Cell newCellForCellKey(Object o, PingData pingData) {
         PrintablePath printablePath = pathTransfer(o);
-        return new ASPathCountryCell(printablePath, pingData.getCountry());
+        return new ASPathCountryCSegCell(printablePath, pingData.getCountry(), extractCSegment(pingData));
     }
 }

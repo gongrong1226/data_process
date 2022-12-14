@@ -2,7 +2,6 @@ package division.strategy;
 
 import dao.IP2ASN;
 import division.PrintablePath;
-import division.cell.ASPathCountryCell;
 import org.junit.Assert;
 import org.junit.Test;
 import pojo.division.AS;
@@ -11,7 +10,7 @@ import pojo.division.Traceroute;
 
 import java.util.List;
 
-public class ASPathCountryCellLocatorTest {
+public class ASPathCountryCSegCellLocatorTest {
 
     @Test
     public void pathTransferTest() {
@@ -36,7 +35,7 @@ public class ASPathCountryCellLocatorTest {
                 ip21);
         String tracerouteString = String.join("|", strings);
         Traceroute traceroute = new Traceroute("dest", tracerouteString, true, 0L);
-        ASPathCountryCellLocator asPathCountryCellLocator = new ASPathCountryCellLocator(new IP2ASN() {
+        ASPathCountryCSegCellLocator asPathCountryCSegCellLocator = new ASPathCountryCSegCellLocator(new IP2ASN() {
             @Override
             public int queryASN(String IP) {
                 if (IP.startsWith("189.157")) {
@@ -53,7 +52,7 @@ public class ASPathCountryCellLocatorTest {
                 return 0;
             }
         });
-        PrintablePath actual = asPathCountryCellLocator.pathTransfer(traceroute);
+        PrintablePath actual = asPathCountryCSegCellLocator.pathTransfer(traceroute);
 
         List<AS> as11 = List.of(as1, as2, as3);
         PrintablePath expected = new ASPath(as11);

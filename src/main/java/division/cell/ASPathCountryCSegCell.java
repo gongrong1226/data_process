@@ -9,22 +9,25 @@ import java.util.ArrayList;
  *
  * @author ZT 2022-12-14 11:07
  */
-public class ASPathCountryCell extends AbstractCell {
+public class ASPathCountryCSegCell extends AbstractCell {
 
     /**
      * 默认使用中位数
      */
     private static RTTCalculator rttCalculator = new MedianRTTCalculator();
 
+    private final String cSegment;
+
     private final String country;
 
-    public ASPathCountryCell(PrintablePath path, String Country) {
+    public ASPathCountryCSegCell(PrintablePath path, String country, String cSegment) {
         super(null, new ArrayList<>(), new ArrayList<>(), path);
-        country = Country;
+        this.country = country;
+        this.cSegment = cSegment;
     }
 
     public static void setRttCalculator(RTTCalculator rttCalculator) {
-        ASPathCountryCell.rttCalculator = rttCalculator;
+        ASPathCountryCSegCell.rttCalculator = rttCalculator;
     }
 
     @Override
@@ -34,5 +37,9 @@ public class ASPathCountryCell extends AbstractCell {
 
     public String getCountry() {
         return country;
+    }
+
+    public String getcSegment() {
+        return cSegment;
     }
 }

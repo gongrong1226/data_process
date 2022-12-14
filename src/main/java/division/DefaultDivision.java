@@ -3,13 +3,12 @@ package division;
 import dao.TracerouteReader;
 import dao.asndb.ASNFileDB;
 import dao.questdb.QuestTracerouteReader;
-import division.strategy.ASPathCountryCellLocator;
+import division.strategy.ASPathCountryCSegCellLocator;
 import division.strategy.CellLocator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.URL;
 
 /**
@@ -35,10 +34,10 @@ public class DefaultDivision extends AbstractDivision {
                     File file = new File(path);
                     ASNFileDB asnFileDB = new ASNFileDB(file);
                     asnFileDB.queryASN("1.1.1.1");
-                    ASPathCountryCellLocator asPathCountryCellLocator = new ASPathCountryCellLocator(asnFileDB);
+                    ASPathCountryCSegCellLocator asPathCountryCSegCellLocator = new ASPathCountryCSegCellLocator(asnFileDB);
 
                     TracerouteReader questTracerouteReader = new QuestTracerouteReader(QuestTracerouteReader.DEFAULT_URL, QuestTracerouteReader.TUNIS_TRACEROUTE_TABLE);
-                    defaultDivision = new DefaultDivision(questTracerouteReader, asPathCountryCellLocator);
+                    defaultDivision = new DefaultDivision(questTracerouteReader, asPathCountryCSegCellLocator);
                 }
             }
         }
