@@ -1,4 +1,4 @@
-package pojo.division;
+package division;
 
 import com.zfoo.protocol.IPacket;
 import com.zfoo.protocol.registration.anno.Protocol;

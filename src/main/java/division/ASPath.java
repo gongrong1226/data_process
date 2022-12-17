@@ -1,8 +1,5 @@
-package pojo.division;
+package division;
 
-import division.PrintablePath;
-
-import java.awt.print.Printable;
 import java.util.List;
 
 /**
