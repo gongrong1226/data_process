@@ -93,6 +93,9 @@ public class ASPathCountryCSegCellLocator extends CellLocator {
      * 根据traceroute和ping data构建cell
      * 调用不了多少次，突尼斯一个区域也就调用50-100次
      *
+     * 最关键的是，即便两个不同单元格中的getPathString()相同，单元格中的ASPath也不会是同一个对象，带来的好处是，
+     * 这两个ASPath中的边缘IP可以是不同的。
+     *
      * @param o traceroute
      * @param pingData ping data
      * @return ASPathCountryCell

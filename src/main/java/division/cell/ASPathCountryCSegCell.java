@@ -31,7 +31,7 @@ public class ASPathCountryCSegCell extends AbstractCell {
     }
 
     @Override
-    public int getExpectedRTT() {
+    public int getStatisticRTT() {
         return rttCalculator.calculate(getRTTs());
     }
 

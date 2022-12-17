@@ -10,8 +10,8 @@ public interface Cell {
     PrintablePath getPath();
 
     /**
-     * 微秒RTT
-     * @return rtt
+     * 获取单元格的RTT
+     * @return 微秒RTT
      */
-    int getExpectedRTT();
+    int getStatisticRTT();
 }
