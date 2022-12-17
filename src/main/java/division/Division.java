@@ -1,6 +1,6 @@
 package division;
 
-import division.Cell;
+import division.cell.Cell;
 import pojo.MeasurementData;
 
 import java.util.List;

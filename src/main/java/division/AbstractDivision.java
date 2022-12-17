@@ -1,6 +1,7 @@
 package division;
 
 import dao.TracerouteReader;
+import division.cell.Cell;
 import division.strategy.ASPathCountryCSegCellLocator;
 import division.strategy.CellLocator;
 import org.slf4j.Logger;

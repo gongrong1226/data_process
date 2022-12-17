@@ -2,14 +2,22 @@ package dao.questdb;
 
 import dao.TracerouteWriter;
 import io.questdb.client.Sender;
-import pojo.division.Traceroute;
+import division.path.Traceroute;
 
 import java.util.List;
 
 /**
+ * CREATE TABLE 'tunis_traceroute' (
+ *   ip SYMBOL capacity 33554432 index capacity 256,
+ *   traceroute STRING,
+ *   ts TIMESTAMP
+ * ) timestamp (ts);
  * @author ZT 2022-12-09 22:32
  */
 public class QuestTracerouteWriter implements TracerouteWriter {
+
+    public static final String DEFAULT_LOCAL_ADDRESS = "localhost:9009";
+    public static final String DEFAULT_TRACEROUTE_TABLE = QuestTracerouteReader.TUNIS_TRACEROUTE_TABLE;
 
     private String address;
     private String table;
@@ -22,7 +30,7 @@ public class QuestTracerouteWriter implements TracerouteWriter {
 
     @Override
     public void write(Traceroute traceroute) {
-        try (Sender sender = Sender.builder().address("localhost:9009").build()) {
+        try (Sender sender = Sender.builder().address(address).build()) {
             sender.table(table)
                     .symbol("ip", traceroute.getIp())
                     .stringColumn("traceroute", traceroute.getTraceroute())
@@ -38,7 +46,7 @@ public class QuestTracerouteWriter implements TracerouteWriter {
      */
     @Override
     public void write(List<Traceroute> traceroutes) {
-        try (Sender sender = Sender.builder().address("localhost:9009").build()) {
+        try (Sender sender = Sender.builder().address(address).build()) {
             for (Traceroute traceroute : traceroutes) {
                 sender.table(table)
                         .symbol("ip", traceroute.getIp())

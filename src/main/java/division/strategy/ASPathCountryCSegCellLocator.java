@@ -1,18 +1,19 @@
 package division.strategy;
 
 import dao.IP2ASN;
-import division.Cell;
-import division.PrintablePath;
+import division.cell.Cell;
+import division.path.PrintablePath;
 import division.cell.ASPathCountryCSegCell;
 import inet.ipaddr.IPAddressString;
 import inet.ipaddr.ipv4.IPv4Address;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pojo.PingData;
-import pojo.division.AS;
-import pojo.division.ASPath;
-import pojo.division.Traceroute;
+import division.path.AS;
+import division.path.ASPath;
+import division.path.Traceroute;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -96,6 +97,8 @@ public class ASPathCountryCSegCellLocator extends CellLocator {
      * 最关键的是，即便两个不同单元格中的getPathString()相同，单元格中的ASPath也不会是同一个对象，带来的好处是，
      * 这两个ASPath中的边缘IP可以是不同的。
      *
+     * TODO 如果不是同一个ASPath对象是否会有影响？
+     *
      * @param o traceroute
      * @param pingData ping data
      * @return ASPathCountryCell
@@ -103,6 +106,9 @@ public class ASPathCountryCSegCellLocator extends CellLocator {
     @Override
     public Cell newCellForCellKey(Object o, PingData pingData) {
         PrintablePath printablePath = pathTransfer(o);
-        return new ASPathCountryCSegCell(printablePath, pingData.getCountry(), extractCSegment(pingData));
+        Instant time = pingData.getTime();
+        long epochSecond = time.getEpochSecond();
+        epochSecond = epochSecond * 1_000_000_000L + time.getNano();
+        return new ASPathCountryCSegCell(printablePath, pingData.getCountry(), extractCSegment(pingData), epochSecond);
     }
 }

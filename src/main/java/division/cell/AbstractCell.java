@@ -1,7 +1,6 @@
 package division.cell;
 
-import division.Cell;
-import division.PrintablePath;
+import division.path.PrintablePath;
 
 import java.util.List;
 import java.util.Map;
@@ -34,11 +33,22 @@ public abstract class AbstractCell implements Cell {
      */
     protected final List<String> IPs;
 
-    public AbstractCell(Map<String, Object> feature, List<Integer> RTTs, List<String> IPs, PrintablePath path) {
+    /**
+     * 故障原因， 如果为null表示无故障
+     */
+    protected FaultCause faultCause;
+
+    /**
+     * 纳秒时间戳
+     */
+    protected Long timestampNano;
+
+    public AbstractCell(Map<String, Object> feature, List<Integer> RTTs, List<String> IPs, PrintablePath path, Long timestampNano) {
         this.feature = feature;
         this.path = path;
         this.RTTs = RTTs;
         this.IPs = IPs;
+        this.timestampNano = timestampNano;
     }
 
     public Map<String, Object> getFeature() {
@@ -77,6 +87,18 @@ public abstract class AbstractCell implements Cell {
         if (path != null ? !path.equals(that.path) : that.path != null) return false;
         if (RTTs != null ? !RTTs.equals(that.RTTs) : that.RTTs != null) return false;
         return IPs != null ? IPs.equals(that.IPs) : that.IPs == null;
+    }
+
+    public FaultCause getFaultCause() {
+        return faultCause;
+    }
+
+    public void setFaultCause(FaultCause faultCause) {
+        this.faultCause = faultCause;
+    }
+
+    public Long getTimestampNano() {
+        return timestampNano;
     }
 
     @Override

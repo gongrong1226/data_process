@@ -1,7 +1,5 @@
 package division.path;
 
-import division.PrintablePath;
-
 import java.util.List;
 
 /**

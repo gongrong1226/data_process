@@ -3,7 +3,7 @@ package dao.tracefiledb;
 import dao.TraceDataWriter;
 import dao.TracerouteWriter;
 import pojo.TraceData;
-import pojo.division.Traceroute;
+import division.path.Traceroute;
 
 import java.time.Instant;
 import java.util.Iterator;
@@ -38,7 +38,7 @@ public abstract class AbstractTraceDataWriter implements TraceDataWriter {
     public final void write(TraceData traceData) {
         Instant time = traceData.getTime();
         long epochSecond = time.getEpochSecond();
-        epochSecond = epochSecond * 1_000_000L + time.getNano();
+        epochSecond = epochSecond * 1_000_000_000L + time.getNano();
         write(new Traceroute.SimpleTraceData(traceData.getDest(), traceData.getResponseIp(), traceData.getHop(),
                 traceData.getMicrosecondsRTT(), epochSecond));
     }

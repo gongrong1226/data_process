@@ -4,7 +4,7 @@ import dao.TracerouteWriter;
 import org.apache.commons.io.FileUtils;
 import org.junit.Assert;
 import org.junit.Test;
-import pojo.division.Traceroute;
+import division.path.Traceroute;
 
 import java.io.File;
 import java.io.IOException;
@@ -28,7 +28,7 @@ public class TraceDataFileWriterTest {
         Integer RTT = 1000000;
         Instant time = Instant.now();
         long epochSecond = time.getEpochSecond();
-        epochSecond = epochSecond * 1_000_000L + time.getNano();
+        epochSecond = epochSecond * 1_000_000_000L + time.getNano();
         return new Traceroute.SimpleTraceData(dest, response, hop, RTT, epochSecond);
     }
 

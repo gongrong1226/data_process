@@ -1,6 +1,6 @@
 package dao;
 
-import pojo.division.Traceroute;
+import division.path.Traceroute;
 
 import java.util.List;
 

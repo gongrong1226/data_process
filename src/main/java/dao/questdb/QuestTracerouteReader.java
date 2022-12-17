@@ -21,8 +21,8 @@ public class QuestTracerouteReader implements TracerouteReader {
 
     private Logger logger = LoggerFactory.getLogger(QuestTracerouteReader.class);
 
-    private final static int INITIAL_CONNECTIONS = 10;
-    private final static int MAX_CONNECTIONS = 32;
+    protected final static int INITIAL_CONNECTIONS = 10;
+    protected final static int MAX_CONNECTIONS = 32;
 
     public final static String TUNIS_TRACEROUTE_TABLE = "tunis_traceroute";
 

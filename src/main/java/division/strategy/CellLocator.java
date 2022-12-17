@@ -1,7 +1,7 @@
 package division.strategy;
 
-import division.Cell;
-import division.PrintablePath;
+import division.cell.Cell;
+import division.path.PrintablePath;
 import pojo.PingData;
 
 import java.util.ArrayList;

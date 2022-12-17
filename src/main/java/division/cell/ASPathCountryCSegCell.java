@@ -1,6 +1,6 @@
 package division.cell;
 
-import division.PrintablePath;
+import division.path.PrintablePath;
 
 import java.util.ArrayList;
 
@@ -20,8 +20,8 @@ public class ASPathCountryCSegCell extends AbstractCell {
 
     private final String country;
 
-    public ASPathCountryCSegCell(PrintablePath path, String country, String cSegment) {
-        super(null, new ArrayList<>(), new ArrayList<>(), path);
+    public ASPathCountryCSegCell(PrintablePath path, String country, String cSegment, Long timestampNano) {
+        super(null, new ArrayList<>(), new ArrayList<>(), path, timestampNano);
         this.country = country;
         this.cSegment = cSegment;
     }

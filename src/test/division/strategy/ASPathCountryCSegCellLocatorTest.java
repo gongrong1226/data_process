@@ -1,12 +1,12 @@
 package division.strategy;
 
 import dao.IP2ASN;
-import division.PrintablePath;
+import division.path.PrintablePath;
 import org.junit.Assert;
 import org.junit.Test;
-import pojo.division.AS;
-import pojo.division.ASPath;
-import pojo.division.Traceroute;
+import division.path.AS;
+import division.path.ASPath;
+import division.path.Traceroute;
 
 import java.util.List;
 
