@@ -1,4 +1,4 @@
-package division;
+package division.path;
 
 import com.zfoo.protocol.IPacket;
 import com.zfoo.protocol.registration.anno.Protocol;

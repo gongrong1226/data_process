@@ -1,4 +1,4 @@
-package division;
+package division.path;
 
 /**
  * @author ZT 2022-12-06 21:59
