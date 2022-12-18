@@ -2,6 +2,7 @@ package dao.tracefiledb;
 
 import com.zfoo.protocol.ProtocolManager;
 import dao.TracerouteWriter;
+import dao.questdb.QuestTracerouteWriter;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.UnpooledHeapByteBuf;
@@ -46,6 +47,11 @@ public class TraceDataFileWriter extends AbstractTraceDataWriter {
      * 所有Trace文件的根目录
      */
     private final String traceDataFilePath;
+
+    public static TraceDataFileWriter defaultTraceDataFileWriter() {
+        QuestTracerouteWriter questTracerouteWriter = new QuestTracerouteWriter(QuestTracerouteWriter.DEFAULT_LOCAL_ADDRESS, QuestTracerouteWriter.DEFAULT_TRACEROUTE_TABLE);
+        return new TraceDataFileWriter(questTracerouteWriter, "/tmp/test_trace_data");
+    }
 
     public TraceDataFileWriter(TracerouteWriter tracerouteWriter, String traceDataFilePath) {
         super(tracerouteWriter);
