@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import pojo.DisruptorEvent;
 import pojo.MeasurementData;
 import pojo.PingData;
+import pojo.TraceData;
 import pojo.compute.City;
 import pojo.compute.Country;
 import pojo.compute.NetSegment;
@@ -41,12 +42,10 @@ public class DataQueueWorker implements WorkHandler<DisruptorEvent> {
     private Writeable writer;
     private Logger logger = LoggerFactory.getLogger(DataQueueWorker.class);
 
-    private TraceDataWriter traceDataWriter = TraceDataFileWriter.defaultTraceDataFileWriter();
+    private static final TraceDataWriter traceDataWriter = TraceDataFileWriter.defaultTraceDataFileWriter();
 
 
     public DataQueueWorker() {
-        this.pingTurn = new AtomicInteger(0);
-        this.traceTurn = new AtomicInteger(0);
         this.rawData = new ConcurrentHashMap<>();
         this.lock = new ReentrantLock();
         this.writer = new InfluxdbStore();
@@ -56,12 +55,11 @@ public class DataQueueWorker implements WorkHandler<DisruptorEvent> {
 
     public DataQueueWorker(AtomicInteger pingTurn, AtomicInteger traceTurn,
                            Lock lock, Map<String, Object> rawData) {
-        this.pingTurn = pingTurn;
-        this.traceTurn = traceTurn;
         this.rawData = rawData;
         this.lock = lock;
         this.dataCollector = new ThreeLevelDataCollector();
         this.computer = new DefaultDataComputer();
+        this.writer = new InfluxdbStore();
     }
 
     @Override
@@ -69,20 +67,18 @@ public class DataQueueWorker implements WorkHandler<DisruptorEvent> {
         logger.info("get data: "+event);
         MeasurementData data = event.getData();
         writer.writeDataByPojo(data);
-        int currentTurn;
         if (data.getType().equals(Constants.PING_DATA)) {
             PingData pingData = (PingData) data;
             // IP集合划分
             DefaultDivision.getDefaultDivision().divide(pingData);
-            currentTurn = this.pingTurn.get();
             // 多线程之间，确认是否已经处理过，幂等性，加map
-            if (pingData.getRound() > currentTurn) {
+            RoundControl roundControl = RoundControl.getRoundControl(pingData.getMeasurementPrefix());
+            if (roundControl.isNewRound(pingData.getRound())) {
                 Map<String, Object> dataMap;
                 lock.lock();
                 try {
                     dataMap = JsonUtil.mapDeepcopy(this.rawData);
                     this.rawData.clear();
-                    this.pingTurn.set(pingData.getRound());
                 } finally {
                     lock.unlock();
                 }
@@ -92,8 +88,6 @@ public class DataQueueWorker implements WorkHandler<DisruptorEvent> {
             lock.lock();
             try {
             //数据分类，分类标准是国家，省份，城市，网段
-            try {
-                lock.lock();
                 String country = pingData.getCountry();
                 String region = pingData.getRegion();
                 String city = pingData.getCity();
@@ -108,6 +102,15 @@ public class DataQueueWorker implements WorkHandler<DisruptorEvent> {
                 this.dataCollector.collect(rtt,countryCollector, regionCollector, cityCollector, segCollector);
             } finally {
                 lock.unlock();
+            }
+        }
+        if (data.getType().equals(Constants.TRACE_DATA)) {
+            TraceData traceData = (TraceData) data;
+            RoundControl roundControl = RoundControl.getRoundControl(traceData.getMeasurementPrefix());
+            // 用作拓扑构建
+            traceDataWriter.write(traceData);
+            if (roundControl.isNewRound(traceData.getRound())) {
+                traceDataWriter.buildAndClear();
             }
         }
     }
