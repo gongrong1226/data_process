@@ -2,13 +2,15 @@ package division;
 
 import dao.TracerouteReader;
 import division.cell.ASPathCountryCSegCell;
+import division.cell.Cell;
+import division.path.AS;
+import division.path.ASPath;
+import division.path.Traceroute;
 import org.junit.Assert;
 import org.junit.Test;
 import pojo.PingData;
-import pojo.division.AS;
-import pojo.division.ASPath;
-import pojo.division.Traceroute;
 
+import java.time.Instant;
 import java.util.*;
 
 public class DefaultDivisionTest {
@@ -26,6 +28,7 @@ public class DefaultDivisionTest {
         pingData.setDestD(split[3]);
         pingData.setRtt((float) (rtt / 1000));
         pingData.setCountry(country);
+        pingData.setTime(Instant.MIN);
         return pingData;
     }
 
@@ -116,8 +119,8 @@ public class DefaultDivisionTest {
                 new Traceroute("1.0.0.2", tracerouteString, true, 0L),
                 new Traceroute("1.0.1.1", tracerouteString, true, 0L)
         ));
-        List<ASPathCountryCSegCell> asPathCountryCSegCells = List.of(new ASPathCountryCSegCell(asPath, "1", "1.0.0"),
-                new ASPathCountryCSegCell(asPath, "1", "1.0.1"));
+        List<ASPathCountryCSegCell> asPathCountryCSegCells = List.of(new ASPathCountryCSegCell(asPath, "1", "1.0.0", 0L),
+                new ASPathCountryCSegCell(asPath, "1", "1.0.1",0L));
         asPathCountryCSegCells.get(0).addRtt("1.0.0.1", 1000);
         pingData.add(newPingData("1.0.0.1", 1000, "1"));
         asPathCountryCSegCells.get(0).addRtt("1.0.0.2", 2000);
@@ -135,8 +138,8 @@ public class DefaultDivisionTest {
                 new Traceroute("2.0.0.2", tracerouteString, true, 0L),
                 new Traceroute("2.0.1.1", tracerouteString, true, 0L)
         ));
-        List<ASPathCountryCSegCell> asPathCountryCSegCells1 = List.of(new ASPathCountryCSegCell(asPath, "1", "2.0.0"),
-                new ASPathCountryCSegCell(asPath, "2", "2.0.1"));
+        List<ASPathCountryCSegCell> asPathCountryCSegCells1 = List.of(new ASPathCountryCSegCell(asPath, "1", "2.0.0", 0L),
+                new ASPathCountryCSegCell(asPath, "2", "2.0.1", 0L));
         asPathCountryCSegCells1.get(0).addRtt("2.0.0.1", 1000);
         pingData.add(newPingData("2.0.0.1", 1000, "1"));
         asPathCountryCSegCells1.get(0).addRtt("2.0.0.2", 2000);
@@ -172,8 +175,8 @@ public class DefaultDivisionTest {
         }
         List<Cell> actual = defaultDivision.resetDivision();
         Comparator<Cell> comparator = (a, b) -> {
-            String s1 = a.getPath().getPathString() + a.getExpectedRTT();
-            String s2 = b.getPath().getPathString() + b.getExpectedRTT();
+            String s1 = a.getPath().getPathString() + a.getStatisticRTT();
+            String s2 = b.getPath().getPathString() + b.getStatisticRTT();
             return s1.compareTo(s2);
         };
         actual.sort(comparator);

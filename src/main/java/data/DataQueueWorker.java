@@ -3,8 +3,11 @@ package data;
 import base.Constants;
 import base.JsonUtil;
 import com.lmax.disruptor.WorkHandler;
+import dao.TraceDataWriter;
+import dao.tracefiledb.TraceDataFileWriter;
 import data.impl.DefaultDataComputer;
 import data.impl.ThreeLevelDataCollector;
+import division.DefaultDivision;
 import org.apache.commons.math3.stat.descriptive.SynchronizedDescriptiveStatistics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,6 +27,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+/**
+ * 不同measurementPrefix代表不同的測量任务，需要不同的控制
+ * TODO 当一个worker可能处理多个数据源时，需要分别控制dispatch
+ */
 public class DataQueueWorker implements WorkHandler<DisruptorEvent> {
     private volatile AtomicInteger pingTurn;
     private volatile AtomicInteger traceTurn;
@@ -33,6 +40,9 @@ public class DataQueueWorker implements WorkHandler<DisruptorEvent> {
     private Lock lock;
     private Writeable writer;
     private Logger logger = LoggerFactory.getLogger(DataQueueWorker.class);
+
+    private TraceDataWriter traceDataWriter = TraceDataFileWriter.defaultTraceDataFileWriter();
+
 
     public DataQueueWorker() {
         this.pingTurn = new AtomicInteger(0);
@@ -45,7 +55,7 @@ public class DataQueueWorker implements WorkHandler<DisruptorEvent> {
     }
 
     public DataQueueWorker(AtomicInteger pingTurn, AtomicInteger traceTurn,
-                           Lock lock,  Map<String, Object> rawData) {
+                           Lock lock, Map<String, Object> rawData) {
         this.pingTurn = pingTurn;
         this.traceTurn = traceTurn;
         this.rawData = rawData;
@@ -62,12 +72,14 @@ public class DataQueueWorker implements WorkHandler<DisruptorEvent> {
         int currentTurn;
         if (data.getType().equals(Constants.PING_DATA)) {
             PingData pingData = (PingData) data;
+            // IP集合划分
+            DefaultDivision.getDefaultDivision().divide(pingData);
             currentTurn = this.pingTurn.get();
-            //轮次大于上一条就开始计算
+            // 多线程之间，确认是否已经处理过，幂等性，加map
             if (pingData.getRound() > currentTurn) {
                 Map<String, Object> dataMap;
+                lock.lock();
                 try {
-                    lock.lock();
                     dataMap = JsonUtil.mapDeepcopy(this.rawData);
                     this.rawData.clear();
                     this.pingTurn.set(pingData.getRound());
@@ -77,6 +89,8 @@ public class DataQueueWorker implements WorkHandler<DisruptorEvent> {
                 //计算
                 this.computer.compute(dataMap);
             }
+            lock.lock();
+            try {
             //数据分类，分类标准是国家，省份，城市，网段
             try {
                 lock.lock();
