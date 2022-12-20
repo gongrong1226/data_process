@@ -61,25 +61,26 @@ public class QuestIPRTTReader implements IPRTTReader {
         String destD = split[3];
         List<Integer> result = new ArrayList<>();
         Connection connection = null;
+        String sql = "SELECT rtt FROM '$TABLE_NAME' where destA=? and destB=? and destC=? and destD=? and timestamp > ?;";
+        sql = sql.replace("$TABLE_NAME", table);
         try {
             connection = dataSource.getConnection();
             try (PreparedStatement preparedStatement = connection.prepareStatement(
-                    "SELECT RTT FROM ? where destA=? and destB=? and destC=? and destD=? and ts > ?;")) {
+                    sql)) {
                 int i = 1;
-                preparedStatement.setString(i++, table);
                 preparedStatement.setString(i++, destA);
                 preparedStatement.setString(i++, destB);
                 preparedStatement.setString(i++, destC);
                 preparedStatement.setString(i++, destD);
                 long currentTimeMillis = System.currentTimeMillis();
                 currentTimeMillis = currentTimeMillis - (long) lastMinutes * 60 * 1000;
-                SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//设置日期格式
+                SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm");//设置日期格式
                 String date = df.format(new Date(currentTimeMillis));
                 preparedStatement.setString(i, date);
                 try (ResultSet rs = preparedStatement.executeQuery()) {
                     while (rs.next()) {
                         // 没到达的就不考虑
-                        result.add(rs.getInt("RTT"));
+                        result.add(rs.getInt("rtt"));
                     }
                 }
             }

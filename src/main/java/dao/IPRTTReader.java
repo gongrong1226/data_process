@@ -22,7 +22,7 @@ public interface IPRTTReader {
      *
      * @param ip          IP
      * @param lastMinutes 过去的时间窗口大小
-     * @return rtt
+     * @return rtt 微妙RTT
      */
     List<Integer> queryRTT(String ip, int lastMinutes);
 

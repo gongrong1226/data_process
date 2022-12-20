@@ -100,7 +100,7 @@ public class QuestTracerouteReader implements TracerouteReader {
                 preparedStatement.setString(2, IP);
                 long currentTimeMillis = System.currentTimeMillis();
                 currentTimeMillis = currentTimeMillis - (long) lastMinutes * 60 * 1000;
-                SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//设置日期格式
+                SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm");//设置日期格式
                 String date = df.format(new Date(currentTimeMillis));
                 preparedStatement.setString(3, date);
                 try (ResultSet rs = preparedStatement.executeQuery()) {
