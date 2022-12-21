@@ -42,7 +42,7 @@ public enum DatabaseConfigHolder {
         return cfg;
     });
 
-    private DatabaseConfig databaseConfig;
+    private volatile DatabaseConfig databaseConfig;
     private EtcdWatcher etcdWatcher;
     private Function<KeyValue, DatabaseConfig> configCallback;
     private ExecutorService watcherWorker;

@@ -1,5 +1,6 @@
 package net;
 
+import com.lmax.disruptor.EventTranslator;
 import com.lmax.disruptor.RingBuffer;
 import com.lmax.disruptor.dsl.Disruptor;
 import data.DataQueue;
@@ -27,6 +28,13 @@ public class MeasurementDataHandler extends ChannelInboundHandlerAdapter {
     public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
         super.channelRegistered(ctx);
         this.dataQueue = DataQueue.QUEUE;
+        logger.info("Remote " + ctx.channel().remoteAddress() + " connected");
+    }
+
+    @Override
+    public void channelUnregistered(ChannelHandlerContext ctx) throws Exception {
+        super.channelUnregistered(ctx);
+        logger.info("Remote " + ctx.channel().remoteAddress() + " disconnected");
     }
 
     @Override
@@ -36,29 +44,6 @@ public class MeasurementDataHandler extends ChannelInboundHandlerAdapter {
             int i = buf.readableBytes();
             byte[] arr = new byte[i];
             buf.readBytes(arr);
-//            byte[] bytes = Arrays.copyOfRange(arr, 6, arr.length);
-//            for (byte b : arr) {
-//                System.out.print(b + " ");
-//            }
-//            System.out.print(new String(arr) + "\n");
-//            String[] messages = new String(bytes).split("\n");
-//            this.buffer = messages[messages.length - 1];
-
-
-//            System.out.println(msg);
-//            System.out.println(message);
-//            byte[] bytes = Arrays.copyOfRange(arr, 6, arr.length);
-//            System.out.println(new String(arr));
-//            if (!this.buffer.equals("")) {
-//                messages[0] = this.buffer+messages[0];
-//            }
-//            for (String message : messages) {
-//                System.out.println(message);
-//            }
-            //数据放到queue里
-//            for (int j = 0; j < messages.length - 1; j++) {
-//
-//            }
             Disruptor<DisruptorEvent> queue = dataQueue.getMeasurementDataQueue();
             RingBuffer<DisruptorEvent> ringBuffer = queue.getRingBuffer();
             long seq = ringBuffer.next();

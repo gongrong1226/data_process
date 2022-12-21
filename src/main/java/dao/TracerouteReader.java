@@ -25,4 +25,8 @@ public interface TracerouteReader {
      * @return traceroute
      */
     List<Object> readTraceroute(String IP, int lastMinutes);
+
+    static String getTracerouteTable(String measurementPrefix) {
+        return TracerouteWriter.getTracerouteTable(measurementPrefix);
+    }
 }

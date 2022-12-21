@@ -74,4 +74,36 @@ public class PingData extends MeasurementData {
         this.time = pingData.time;
     }
 
+
+    public String getHost() {
+        return host;
+    }
+
+    public String getDestA() {
+        return destA;
+    }
+
+    public String getDestB() {
+        return destB;
+    }
+
+    public String getDestC() {
+        return destC;
+    }
+
+    public String getDestD() {
+        return destD;
+    }
+
+    public String getProtocol() {
+        return protocol;
+    }
+
+    public String getMeasurementPrefix() {
+        return measurementPrefix;
+    }
+
+    public Instant getTime() {
+        return time;
+    }
 }

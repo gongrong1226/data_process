@@ -25,16 +25,7 @@ public class DefaultDivision extends AbstractDivision {
         if (defaultDivision == null) {
             synchronized (DefaultDivision.class) {
                 if (defaultDivision == null) {
-                    URL asnResource = DefaultDivision.class.getClassLoader().getResource("dao/ip2asn-v4.tsv");
-                    if (asnResource == null) {
-                        String err = "can not get the asn data file";
-                        logger.error(err);
-                        throw new RuntimeException(err);
-                    }
-                    String path = asnResource.getPath();
-                    File file = new File(path);
-                    ASNFileDB asnFileDB = new ASNFileDB(file);
-                    asnFileDB.queryASN("1.1.1.1");
+                    ASNFileDB asnFileDB = ASNFileDB.getDefaultASNFileDB();
                     ASPathCountryCSegCellLocator asPathCountryCSegCellLocator = new ASPathCountryCSegCellLocator(asnFileDB);
 
                     TracerouteReader questTracerouteReader = new QuestTracerouteReader(QuestTracerouteReader.DEFAULT_URL, QuestTracerouteReader.TUNIS_TRACEROUTE_TABLE);

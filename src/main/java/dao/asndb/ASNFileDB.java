@@ -16,6 +16,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.net.Inet4Address;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -35,7 +36,9 @@ public class ASNFileDB implements IP2ASN {
     private static int COUNTRY_CODE_IDX = 3;
     private static int AS_DESCRIPTION_IDX = 3;
 
-    private final Logger logger = LoggerFactory.getLogger(ASNFileDB.class);
+    private volatile static ASNFileDB defaultASNFileDB;
+
+    private static final Logger logger = LoggerFactory.getLogger(ASNFileDB.class);
 
     private final File dbFile;
 
@@ -45,6 +48,26 @@ public class ASNFileDB implements IP2ASN {
         this.dbFile = dbFile;
     }
 
+    public static ASNFileDB getDefaultASNFileDB() {
+        if (defaultASNFileDB == null) {
+            synchronized (ASNFileDB.class) {
+                if (defaultASNFileDB == null) {
+                    URL asnResource = ASNFileDB.class.getClassLoader().getResource("dao/ip2asn-v4.tsv");
+                    if (asnResource == null) {
+                        String err = "can not get the asn data file";
+                        logger.error(err);
+                        throw new RuntimeException(err);
+                    }
+                    String path = asnResource.getPath();
+                    File file = new File(path);
+                    ASNFileDB asnFileDB = new ASNFileDB(file);
+                    asnFileDB.queryASN("1.1.1.1");
+                    defaultASNFileDB = asnFileDB;
+                }
+            }
+        }
+        return defaultASNFileDB;
+    }
 
     private static class AddressWithASN extends IPv4Address {
         private int asn;

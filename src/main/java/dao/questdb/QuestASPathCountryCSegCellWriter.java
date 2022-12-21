@@ -3,7 +3,6 @@ package dao.questdb;
 import dao.CellWriter;
 import division.cell.ASPathCountryCSegCell;
 import division.cell.Cell;
-import division.path.Traceroute;
 import io.questdb.client.Sender;
 
 import java.util.List;
@@ -21,6 +20,10 @@ public class QuestASPathCountryCSegCellWriter implements CellWriter {
 
     private final String address;
     private final String table;
+
+    public static String getTable(String measurementPrefix) {
+        return measurementPrefix + "_aspath_country_cseg_cell";
+    }
 
     public static QuestASPathCountryCSegCellWriter newDefaultInstance() {
         return new QuestASPathCountryCSegCellWriter(DEFAULT_LOCAL_ADDRESS, DEFAULT_TABLE);
@@ -44,7 +47,7 @@ public class QuestASPathCountryCSegCellWriter implements CellWriter {
                         .symbol("as_path", asPathCountryCSegCell.getPath().getPathString())
                         .symbol("country", asPathCountryCSegCell.getCountry())
                         .symbol("c_segment", asPathCountryCSegCell.getcSegment())
-                        .stringColumn("fault_cause", faultCause==null ? "" : faultCause.toString())
+                        .stringColumn("fault_cause", faultCause == null ? "" : faultCause.toString())
                         .at(asPathCountryCSegCell.getTimestampNano());
             }
         }
@@ -61,7 +64,7 @@ public class QuestASPathCountryCSegCellWriter implements CellWriter {
                     .symbol("as_path", asPathCountryCSegCell.getPath().getPathString())
                     .symbol("country", asPathCountryCSegCell.getCountry())
                     .symbol("c_segment", asPathCountryCSegCell.getcSegment())
-                    .stringColumn("fault_cause", faultCause==null ? "" : faultCause.toString())
+                    .stringColumn("fault_cause", faultCause == null ? "" : faultCause.toString())
                     .at(asPathCountryCSegCell.getTimestampNano());
         }
     }

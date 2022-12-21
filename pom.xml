@@ -37,11 +37,6 @@
             <artifactId>postgresql</artifactId>
             <version>42.5.1</version>
         </dependency>
-        <dependency>
-            <groupId>com.zfoo</groupId>
-            <artifactId>zfoo</artifactId>
-            <version>3.0</version>
-        </dependency>
         <!-- https://mvnrepository.com/artifact/commons-io/commons-io -->
         <dependency>
             <groupId>com.influxdb</groupId>
@@ -69,10 +64,16 @@
 
         <dependency>
             <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-reload4j</artifactId>
+            <artifactId>slf4j-api</artifactId>
             <version>2.0.3</version>
-            <scope>test</scope>
         </dependency>
+
+<!--        <dependency>-->
+<!--            <groupId>org.slf4j</groupId>-->
+<!--            <artifactId>slf4j-reload4j</artifactId>-->
+<!--            <version>2.0.3</version>-->
+<!--            <scope>test</scope>-->
+<!--        </dependency>-->
 
         <dependency>
             <groupId>io.netty</groupId>
@@ -97,14 +98,8 @@
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-simple</artifactId>
             <version>2.0.3</version>
-            <scope>test</scope>
         </dependency>
 
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>2.0.3</version>
-        </dependency>
 
         <dependency>
             <groupId>io.grpc</groupId>
@@ -116,6 +111,12 @@
             <groupId>commons-codec</groupId>
             <artifactId>commons-codec</artifactId>
             <version>1.15</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.zfoo</groupId>
+            <artifactId>zfoo</artifactId>
+            <version>3.0</version>
         </dependency>
 
         <dependency>

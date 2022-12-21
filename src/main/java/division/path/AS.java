@@ -7,6 +7,7 @@ public class AS {
 
     private int ASN;
 
+    // TODO 现在的lastIP是第一个触发newCell方法的路径上的IP
     private String firstIP, lastIP;
 
     /**
@@ -57,4 +58,7 @@ public class AS {
         return lastIP.equals(as.lastIP);
     }
 
+    public String getLastIP() {
+        return lastIP;
+    }
 }

@@ -4,6 +4,9 @@ import com.influxdb.client.InfluxDBClient;
 import com.influxdb.client.InfluxDBClientFactory;
 import com.influxdb.client.WriteApiBlocking;
 import com.influxdb.client.domain.WritePrecision;
+import com.influxdb.client.internal.AbstractWriteClient;
+import com.influxdb.client.internal.MeasurementMapper;
+import com.influxdb.client.write.Point;
 import data.impl.DefaultDataResolver;
 import data.impl.GRPCValueResolver;
 import division.DefaultDivisionTest;
@@ -12,6 +15,7 @@ import division.cell.Cell;
 import division.path.ASPath;
 import org.junit.Test;
 import pojo.PingData;
+import store.Writeable;
 
 import java.util.List;
 
@@ -48,12 +52,17 @@ public class QuestTest {
 
     @Test
     public void TestInfluxdbCreator() {
+        Writeable.getDefaultWriteable();
         InfluxDBClient influxDBClient = InfluxDBClientFactory.create("http://101.251.218.10:9009", "7o6XopexyclzY8XhbCI5LTR9dmmNE1L4dmW8Iu5EIS0qfkLDV3uq884WeIw0jvfxPJuoUjlXGp46uZqGGK78Rw==".toCharArray(),
                 "club203", "club203");
         WriteApiBlocking writeApiBlocking = influxDBClient.getWriteApiBlocking();
         PingData pingData = new PingData();
         DefaultDataResolver grpcValueResolver = new DefaultDataResolver();
         Object o = grpcValueResolver.resolveLineData("ping,host=cb52f4c932cb,influx_data_bucket=FK-SDZX-EasternEurope-Origin proto_base64=CiwI2dLYiMUwGgs4My4xOS42Ny40OSABKAUyEkVhc3Rlcm5FdXJvcGUtUGluZxU9CkFC 1667807805236177620");
+        AbstractWriteClient.BatchWriteDataMeasurement batchWriteDataMeasurement = new AbstractWriteClient.BatchWriteDataMeasurement(o, WritePrecision.NS, null, new MeasurementMapper());
+//        Point point = new Point();
+//        point.
+//        System.out.println(batchWriteDataMeasurement.toLineProtocol());
 
         writeApiBlocking.writeMeasurement(WritePrecision.NS, o);
     }

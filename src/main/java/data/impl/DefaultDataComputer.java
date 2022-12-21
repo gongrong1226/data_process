@@ -26,7 +26,7 @@ public class DefaultDataComputer implements MeasurementDataComputer {
 
     public DefaultDataComputer() {
         this.lock = new ReentrantLock();
-        this.store = new InfluxdbStore();
+        this.store = Writeable.getDefaultWriteable();
     }
 
     @Override

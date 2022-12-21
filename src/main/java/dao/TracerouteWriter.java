@@ -14,4 +14,7 @@ public interface TracerouteWriter {
 
     void write(List<Traceroute> traceroutes);
 
+    static String getTracerouteTable(String measurementPrefix) {
+        return measurementPrefix + "_traceroute";
+    }
 }

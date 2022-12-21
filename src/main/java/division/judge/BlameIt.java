@@ -2,6 +2,7 @@ package division.judge;
 
 import division.cell.Cell;
 import division.Judge;
+import division.path.PathRTTGetter;
 import division.path.PrintablePath;
 
 import java.util.*;
@@ -34,7 +35,6 @@ public class BlameIt implements Judge {
 
     private Set<String> extractPaths(List<Cell> cellList) {
         Set<String> pathStrings = new HashSet<>();
-        List<PrintablePath> list = new ArrayList<>(cellList.size());
         for (Cell cell : cellList) {
             pathStrings.add(cell.getPath().getPathString());
         }

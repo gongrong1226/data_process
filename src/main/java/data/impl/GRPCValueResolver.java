@@ -16,11 +16,12 @@ import java.time.Instant;
 import java.util.Map;
 
 public class GRPCValueResolver implements ValueResolver {
-//    private IPLocation locator;
+    private IPLocation locator;
     private Logger logger = LoggerFactory.getLogger(GRPCValueResolver.class);
 
     public GRPCValueResolver() {
 //        this.locator = new DefaultIPLocation();
+        locator = new EmptyIPLocation();
     }
 
     @Override
@@ -43,7 +44,7 @@ public class GRPCValueResolver implements ValueResolver {
         if (base != null) {
             String dest = base.getDestination();
             String[] netSeg = dest.split("\\.");
-//            Map<String, Object> ipInfo = this.locator.LocateBySingleIP(netSeg[0] + "." + netSeg[1] + "." + netSeg[2] + ".0");
+            Map<String, Object> ipInfo = this.locator.LocateBySingleIP(netSeg[0] + "." + netSeg[1] + "." + netSeg[2] + ".0");
             Class<? extends MeasurementData> dataClass = data.getClass();
             dataClass.getMethod("setHost", String.class).invoke(data, base.getHost());
             dataClass.getMethod("setDestA", String.class).invoke(data, netSeg[0]);
@@ -55,12 +56,12 @@ public class GRPCValueResolver implements ValueResolver {
             dataClass.getMethod("setRound", Integer.class).invoke(data, base.getRound());
             dataClass.getMethod("setMeasurementPrefix", String.class).invoke(data, base.getMeasurementPrefix());
             dataClass.getMethod("setTime", Instant.class).invoke(data, Instant.ofEpochMilli(base.getRecvTimestampMillisecond()));
-//            dataClass.getMethod("setCountry", String.class).invoke(data, String.valueOf(
-//                    ipInfo.getOrDefault("country_name", "unknown")));
-//            dataClass.getMethod("setRegion", String.class).invoke(data, String.valueOf(
-//                    ipInfo.getOrDefault("region_name", "unknown")));
-//            dataClass.getMethod("setCity", String.class).invoke(data, String.valueOf(
-//                    ipInfo.getOrDefault("city_name", "unknown")));
+            dataClass.getMethod("setCountry", String.class).invoke(data, String.valueOf(
+                    ipInfo.getOrDefault("country_name", "unknown")));
+            dataClass.getMethod("setRegion", String.class).invoke(data, String.valueOf(
+                    ipInfo.getOrDefault("region_name", "unknown")));
+            dataClass.getMethod("setCity", String.class).invoke(data, String.valueOf(
+                    ipInfo.getOrDefault("city_name", "unknown")));
         }
         return data;
     }

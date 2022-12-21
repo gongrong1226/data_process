@@ -32,9 +32,9 @@ public class DefaultDivisionTest {
         return pingData;
     }
 
-    private static class ASPathAndTraceroute {
-        ASPath asPath;
-        String traceroutes;
+    public static class ASPathAndTraceroute {
+        public ASPath asPath;
+        public String traceroutes;
 
         public ASPathAndTraceroute(ASPath asPath, String traceroutes) {
             this.asPath = asPath;

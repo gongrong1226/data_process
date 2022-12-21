@@ -31,8 +31,9 @@ public enum EtcdWatcher {
                     endpoints[i] = "http://" + endpoints[i];
                 }
             }
+            logger.info("Now connecting to etcd: "+String.join(";", endpoints));
             this.etcdClient = Client.builder().endpoints(endpoints).build();
-            logger.info("connect to etcd "+ this.etcdClient);
+            logger.info("connected to etcd "+ this.etcdClient);
             this.databaseConfigWatcher = this.etcdClient.getWatchClient();
             if (this.databaseConfigWatcher != null) {
                 logger.info("get watcher to db");

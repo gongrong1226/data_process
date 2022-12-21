@@ -31,9 +31,9 @@ public class QuestTracerouteReader implements TracerouteReader {
     /**
      * TODO Refactor， 放到DAO注解当中
      */
-    private final static String IP_COLUMN = "ip";
-    private final static String TRACEROUTE_COLUMN = "traceroute";
-    private final static String ARRIVED_COLUMN = "traceroute";
+    protected final static String IP_COLUMN = "ip";
+    protected final static String TRACEROUTE_COLUMN = "traceroute";
+    protected final static String ARRIVED_COLUMN = "arrived";
 
     private String table;
     private PoolingDataSource dataSource;
@@ -61,10 +61,10 @@ public class QuestTracerouteReader implements TracerouteReader {
         Connection connection = null;
         try {
             connection = dataSource.getConnection();
-            try (PreparedStatement preparedStatement = connection.prepareStatement(
-                    "SELECT * FROM ? where ip=?;")) {
-                preparedStatement.setString(1, table);
-                preparedStatement.setString(2, IP);
+            String sql = "SELECT * FROM '$TABLE_NAME' where ip=?;";
+            sql = sql.replace("$TABLE_NAME", table);
+            try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+                preparedStatement.setString(1, IP);
                 try (ResultSet rs = preparedStatement.executeQuery()) {
                     while (rs.next()) {
                         // 没到达的就不考虑
@@ -94,15 +94,16 @@ public class QuestTracerouteReader implements TracerouteReader {
         Connection connection = null;
         try {
             connection = dataSource.getConnection();
-            try (PreparedStatement preparedStatement = connection.prepareStatement(
-                    "SELECT * FROM ? where ip=? and ts > ?;")) {
-                preparedStatement.setString(1, table);
-                preparedStatement.setString(2, IP);
+            String sql = "SELECT * FROM '$TABLE_NAME' where ip=? and timestamp > ?;";
+            sql = sql.replace("$TABLE_NAME", table);
+            try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+                int i = 1;
+                preparedStatement.setString(i++, IP);
                 long currentTimeMillis = System.currentTimeMillis();
                 currentTimeMillis = currentTimeMillis - (long) lastMinutes * 60 * 1000;
                 SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm");//设置日期格式
                 String date = df.format(new Date(currentTimeMillis));
-                preparedStatement.setString(3, date);
+                preparedStatement.setString(i++, date);
                 try (ResultSet rs = preparedStatement.executeQuery()) {
                     while (rs.next()) {
                         // 没到达的就不考虑

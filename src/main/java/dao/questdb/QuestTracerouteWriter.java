@@ -22,6 +22,8 @@ public class QuestTracerouteWriter implements TracerouteWriter {
     private String address;
     private String table;
 
+
+
     public QuestTracerouteWriter(String address, String table) {
         this.address = address;
         this.table = table;
@@ -32,9 +34,9 @@ public class QuestTracerouteWriter implements TracerouteWriter {
     public void write(Traceroute traceroute) {
         try (Sender sender = Sender.builder().address(address).build()) {
             sender.table(table)
-                    .symbol("ip", traceroute.getIp())
-                    .stringColumn("traceroute", traceroute.getTraceroute())
-                    .boolColumn("arrived", traceroute.getArrived())
+                    .symbol(QuestTracerouteReader.IP_COLUMN, traceroute.getIp())
+                    .stringColumn(QuestTracerouteReader.TRACEROUTE_COLUMN, traceroute.getTraceroute())
+                    .boolColumn(QuestTracerouteReader.ARRIVED_COLUMN, traceroute.getArrived())
                     .at(traceroute.getTimestamp());
         }
     }
