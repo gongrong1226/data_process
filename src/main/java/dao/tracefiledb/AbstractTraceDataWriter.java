@@ -28,7 +28,7 @@ public abstract class AbstractTraceDataWriter implements TraceDataWriter {
 
 
     /**
-     * 保证线程安全
+     * 已保证线程安全
      *
      * @param simpleTraceData data
      */
@@ -40,7 +40,7 @@ public abstract class AbstractTraceDataWriter implements TraceDataWriter {
         long epochSecond = time.getEpochSecond();
         epochSecond = epochSecond * 1_000_000_000L + time.getNano();
         write(new Traceroute.SimpleTraceData(traceData.getDest(), traceData.getResponseIp(), traceData.getHop(),
-                traceData.getMicrosecondsRTT(), epochSecond));
+                traceData.getMicrosecondRTT(), epochSecond));
     }
 
     /**

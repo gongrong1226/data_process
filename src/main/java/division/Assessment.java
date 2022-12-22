@@ -2,10 +2,7 @@ package division;
 
 import dao.*;
 import dao.asndb.ASNFileDB;
-import dao.questdb.QuestASPathCountryCSegCellWriter;
-import dao.questdb.QuestIPRTTReader;
-import dao.questdb.QuestTracerouteReader;
-import dao.questdb.QuestTracerouteWriter;
+import dao.questdb.*;
 import dao.tracefiledb.TraceDataFileWriter;
 import division.cell.Cell;
 import division.cell.MedianRTTCalculator;
@@ -16,20 +13,29 @@ import division.path.PathRTTGetter;
 import division.path.PathRTTGetterBuilder;
 import division.strategy.ASPathCountryCSegCellLocator;
 import division.strategy.CellLocator;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pojo.MeasurementData;
+import pojo.PingData;
 import pojo.TraceData;
+import store.Writeable;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.*;
 
 /**
  * @author ZT 2022-12-19 11:01
  */
 public class Assessment implements TraceDataWriter {
+
+    private static final Logger logger = LoggerFactory.getLogger(Assessment.class);
+
+    public static final String ROUTERS_MEASUREMENT_SUFFIX = "_routers";
+
+    private static final String TRACE_DATA_TMP_DIR = "/tmp/trace_data";
 
     private final Division division;
 
@@ -39,9 +45,10 @@ public class Assessment implements TraceDataWriter {
 
     private final TraceDataWriter traceDataWriter;
 
-    private static final String TRACE_DATA_TMP_DIR = "/tmp/trace_data";
+    private final ThreadLocal<Writeable> writeableThreadLocal = new ThreadLocal<>();
 
-    private static final Logger logger = LoggerFactory.getLogger(Assessment.class);
+    private final ThreadPoolExecutor tracerouteThreadPoolExecutor;
+
     /**
      * measurement_prefix, Assessment
      */
@@ -88,10 +95,16 @@ public class Assessment implements TraceDataWriter {
                 // 将Trace数据转换为traceroute的方法，以及存放数据库
                 String traceDataPath = getTraceDataPath(measurementPrefix);
                 TraceDataFileWriter traceDataFileWriter = new TraceDataFileWriter(questTracerouteWriter, traceDataPath);
+                try {
+                    traceDataFileWriter.init();
+                } catch (IOException e) {
+                    logger.error("...traceDataFileWriter error= " + e);
+                    throw new RuntimeException(e.getCause());
+                }
                 logger.info(String.format("...Created TraceDataFileWriter, questTracerouteWriteTable=%s, questTracerouteWriteAddress=%s, traceDataPath=%s",
                         tracerouteWriteTable, questTracerouteWriteAddress, traceDataPath));
 
-                // step 1.2 这一步用来指明从哪里获取这些数据
+                // step 1.2 这一步用来指明从哪里获取这些traceroute数据
                 String tracerouteReadTable = TracerouteReader.getTracerouteTable(measurementPrefix);
                 String questTracerouteReaderURL = QuestTracerouteReader.DEFAULT_URL;
                 TracerouteReader questTracerouteReader = new QuestTracerouteReader(questTracerouteReaderURL, tracerouteReadTable);
@@ -128,6 +141,7 @@ public class Assessment implements TraceDataWriter {
                 CellThresholdGetter cellThresholdGetter = cell -> 200 * 1000;
                 BlameIt blameIt = new BlameIt(tau, cellThresholdGetter, pathRTTGetter);
                 logger.info("...Created BlameIt, tau=" + tau);
+                // ADDITIONAL STEP 把测量的trace数据也写入到
                 Assessment newAssessment = new Assessment(defaultDivision, blameIt, cellWriter, traceDataFileWriter);
                 assessment = assessmentConcurrentHashMap.putIfAbsent(measurementPrefix, newAssessment);
                 logger.info("Created Assessment.");
@@ -140,12 +154,20 @@ public class Assessment implements TraceDataWriter {
     }
 
 
-
     public Assessment(Division division, Judge judge, CellWriter cellWriter, TraceDataWriter traceDataWriter) {
         this.division = division;
         this.judge = judge;
         this.cellWriter = cellWriter;
         this.traceDataWriter = traceDataWriter;
+        tracerouteThreadPoolExecutor = new ThreadPoolExecutor(2, Runtime.getRuntime().availableProcessors(),
+                30, TimeUnit.MINUTES, new ArrayBlockingQueue<Runnable>(16), new ThreadFactory() {
+            @Override
+            public Thread newThread(@NotNull Runnable r) {
+                Thread thread = new Thread(r);
+                thread.setName("Traceroute-compute");
+                return thread;
+            }
+        }, new ThreadPoolExecutor.CallerRunsPolicy());
     }
 
     public void put(MeasurementData data) {
@@ -158,9 +180,38 @@ public class Assessment implements TraceDataWriter {
         cellWriter.write(cells);
     }
 
+    private Writeable getRoutersPingWriter() {
+        Writeable writeable = writeableThreadLocal.get();
+        if (writeable == null) {
+            writeable = new QuestIPRTTWriter(QuestTracerouteWriter.DEFAULT_LOCAL_ADDRESS, "default_routers_ping_table");
+            writeableThreadLocal.set(writeable);
+        }
+        return writeable;
+    }
 
+    /**
+     * 将trace数据写入measurementPrefix_routers_ping这个表中当中
+     *
+     * @param traceData traceData
+     * @see Assessment#ROUTERS_MEASUREMENT_SUFFIX
+     * @see TraceData#transferToRoutersPing(TraceData, String)
+     * @see QuestIPRTTWriter#getTableName(MeasurementData)
+     */
+    private void writeAsRoutersPing(TraceData traceData) {
+        Writeable routersPingWriter = getRoutersPingWriter();
+        PingData pingData = TraceData.transferToRoutersPing(traceData, ROUTERS_MEASUREMENT_SUFFIX);
+        routersPingWriter.writeDataByPojo(pingData);
+    }
+
+    /**
+     * 一方面用作traceroute路径构建
+     * 另一方面存入measurementPrefix_routers_ping表中
+     *
+     * @param traceData data
+     */
     @Override
     public void write(TraceData traceData) {
+        writeAsRoutersPing(traceData);
         traceDataWriter.write(traceData);
     }
 
@@ -169,8 +220,11 @@ public class Assessment implements TraceDataWriter {
         traceDataWriter.flush();
     }
 
+    /**
+     * 处理突尼斯的需要1小时以上，大部分（95%）时间用在写DB上了。
+     */
     @Override
     public void buildAndClear() {
-        traceDataWriter.buildAndClear();
+        tracerouteThreadPoolExecutor.execute(() -> traceDataWriter.buildAndClear());
     }
 }

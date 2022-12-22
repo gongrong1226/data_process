@@ -1,17 +1,18 @@
 package dao.questdb;
 
 import dao.TracerouteWriter;
-import io.questdb.client.Sender;
 import division.path.Traceroute;
+import io.questdb.client.Sender;
 
 import java.util.List;
 
 /**
  * CREATE TABLE 'tunis_traceroute' (
- *   ip SYMBOL capacity 33554432 index capacity 256,
- *   traceroute STRING,
- *   ts TIMESTAMP
+ * ip SYMBOL capacity 33554432 index capacity 256,
+ * traceroute STRING,
+ * ts TIMESTAMP
  * ) timestamp (ts);
+ *
  * @author ZT 2022-12-09 22:32
  */
 public class QuestTracerouteWriter implements TracerouteWriter {
@@ -23,7 +24,6 @@ public class QuestTracerouteWriter implements TracerouteWriter {
     private String table;
 
 
-
     public QuestTracerouteWriter(String address, String table) {
         this.address = address;
         this.table = table;
@@ -32,13 +32,7 @@ public class QuestTracerouteWriter implements TracerouteWriter {
 
     @Override
     public void write(Traceroute traceroute) {
-        try (Sender sender = Sender.builder().address(address).build()) {
-            sender.table(table)
-                    .symbol(QuestTracerouteReader.IP_COLUMN, traceroute.getIp())
-                    .stringColumn(QuestTracerouteReader.TRACEROUTE_COLUMN, traceroute.getTraceroute())
-                    .boolColumn(QuestTracerouteReader.ARRIVED_COLUMN, traceroute.getArrived())
-                    .at(traceroute.getTimestamp());
-        }
+        write(List.of(traceroute));
     }
 
     /**
@@ -50,10 +44,15 @@ public class QuestTracerouteWriter implements TracerouteWriter {
     public void write(List<Traceroute> traceroutes) {
         try (Sender sender = Sender.builder().address(address).build()) {
             for (Traceroute traceroute : traceroutes) {
+                String ip = traceroute.getIp();
+                String[] split = ip.split("\\.");
                 sender.table(table)
-                        .symbol("ip", traceroute.getIp())
-                        .stringColumn("traceroute", traceroute.getTraceroute())
-                        .boolColumn("arrived", traceroute.getArrived())
+                        .symbol(QuestTracerouteReader.DEST_A_COLUMN, split[0])
+                        .symbol(QuestTracerouteReader.DEST_B_COLUMN, split[1])
+                        .symbol(QuestTracerouteReader.DEST_C_COLUMN, split[2])
+                        .symbol(QuestTracerouteReader.DEST_D_COLUMN, split[3])
+                        .stringColumn(QuestTracerouteReader.TRACEROUTE_COLUMN, traceroute.getTraceroute())
+                        .boolColumn(QuestTracerouteReader.ARRIVED_COLUMN, traceroute.getArrived())
                         .at(traceroute.getTimestamp());
             }
         }

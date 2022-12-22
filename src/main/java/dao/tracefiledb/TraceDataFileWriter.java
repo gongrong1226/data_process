@@ -3,13 +3,13 @@ package dao.tracefiledb;
 import com.zfoo.protocol.ProtocolManager;
 import dao.TracerouteWriter;
 import dao.questdb.QuestTracerouteWriter;
+import division.path.Traceroute;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.UnpooledHeapByteBuf;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import division.path.Traceroute;
 
 import java.io.File;
 import java.io.IOException;
@@ -176,7 +176,12 @@ public class TraceDataFileWriter extends AbstractTraceDataWriter {
                 if (file.createNewFile()) {
                     logger.info(String.format("Create file %s successful.", file.getAbsolutePath()));
                 } else {
-                    logger.error(String.format("Create file %s failed.", file.getAbsolutePath()));
+                    // concurrent creating
+                    if (file.exists()) {
+                        logger.info(String.format("File %s exists.", file.getAbsolutePath()));
+                    } else {
+                        logger.error(String.format("Create file %s failed.", file.getAbsolutePath()));
+                    }
                 }
             }
         }
@@ -409,7 +414,7 @@ public class TraceDataFileWriter extends AbstractTraceDataWriter {
     }
 
     /**
-     * 需要保证线程安全
+     * 已保证线程安全
      *
      * @param simpleTraceData data
      */

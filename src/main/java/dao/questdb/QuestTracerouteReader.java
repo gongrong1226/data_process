@@ -31,7 +31,10 @@ public class QuestTracerouteReader implements TracerouteReader {
     /**
      * TODO Refactor， 放到DAO注解当中
      */
-    protected final static String IP_COLUMN = "ip";
+    protected final static String DEST_A_COLUMN = "destA";
+    protected final static String DEST_B_COLUMN = "destB";
+    protected final static String DEST_C_COLUMN = "destC";
+    protected final static String DEST_D_COLUMN = "destD";
     protected final static String TRACEROUTE_COLUMN = "traceroute";
     protected final static String ARRIVED_COLUMN = "arrived";
 
@@ -66,11 +69,15 @@ public class QuestTracerouteReader implements TracerouteReader {
         Connection connection = null;
         try {
             connection = dataSource.getConnection();
-            String sql = "SELECT * FROM '$TABLE_NAME' where ip=? and timestamp > ?;";
+            String sql = "SELECT * FROM '$TABLE_NAME' where destA=? and destB=? and destC=? and destD=? and timestamp > ?;";
             sql = sql.replace("$TABLE_NAME", table);
             try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+                String[] split = IP.split("\\.");
                 int i = 1;
-                preparedStatement.setString(i++, IP);
+                preparedStatement.setString(i++, split[0]);
+                preparedStatement.setString(i++, split[1]);
+                preparedStatement.setString(i++, split[2]);
+                preparedStatement.setString(i++, split[3]);
                 long currentTimeMillis = System.currentTimeMillis();
                 currentTimeMillis = currentTimeMillis - (long) lastMinutes * 60 * 1000;
                 SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm");//设置日期格式

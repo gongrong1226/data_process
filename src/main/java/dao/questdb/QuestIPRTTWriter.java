@@ -9,6 +9,7 @@ import pojo.MeasurementData;
 import pojo.TraceData;
 import store.Writeable;
 
+import java.lang.ref.Cleaner;
 import java.util.List;
 
 /**
@@ -17,7 +18,7 @@ import java.util.List;
  *
  * @author ZT 2022-12-20 22:28
  */
-public class QuestIPRTTWriter implements Writeable {
+public class QuestIPRTTWriter implements Writeable, Runnable {
 
     private final String address;
     private final String table;
@@ -34,11 +35,14 @@ public class QuestIPRTTWriter implements Writeable {
     //private final ThreadLocal<Sender> senderThreadLocal;
 
     private Sender sender;
+    private static final Cleaner cleaner = Cleaner.create();
 
     public QuestIPRTTWriter(String address, String table) {
         this.address = address;
         this.table = table;
         sender = Sender.builder().address(address).build();
+        // 触发run(), 回收socket
+        cleaner.register(this, this);
     }
 
 
@@ -99,5 +103,19 @@ public class QuestIPRTTWriter implements Writeable {
     @Override
     public void writeDataByPoint(Point data) {
 
+    }
+
+    /**
+     * 被回收的时候会执行
+     * @see Cleaner#register(Object, Runnable)
+     */
+    @Override
+    public void run() {
+        try {
+            sender.close();
+            logger.info("Closed sender");
+        } catch (Throwable t) {
+            logger.error("close sender, throwable="+t);
+        }
     }
 }

@@ -10,10 +10,13 @@ import transfer.TransferOuterClass;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.Base64;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class DefaultDataResolver implements MeasurementDataResolver {
     private ValueResolver valueResolver;
     private Logger logger = LoggerFactory.getLogger(DefaultDataResolver.class);
+    private final Pattern protoBase64 = Pattern.compile("proto_base64=\"(.*)\"");//. represents single character
 
     public DefaultDataResolver() {
         this.valueResolver = new GRPCValueResolver();
@@ -45,10 +48,13 @@ public class DefaultDataResolver implements MeasurementDataResolver {
         Object result = null;
         String[] tags = line.split(",");
         String dataType = tags[0];
-        String[] fields = tags[2].split(" ");
-        String data = fields[1].split("=")[1];
-        // remove " "
-        data = customTrim(data, '"');
+//        int idx = tags.length - 1;
+//        String[] fields = tags[idx].split(" ");
+        Matcher m = protoBase64.matcher(line);
+        if(!m.find()) {
+            return null;
+        }
+        String data =  m.group(1);
         byte[] base64Data = Base64.getDecoder().decode(data);
         switch (dataType) {
             case Constants.PING_DATA -> {

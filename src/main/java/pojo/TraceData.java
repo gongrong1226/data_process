@@ -74,8 +74,28 @@ public class TraceData extends MeasurementData {
         return destA + "." + destB + "." + destC + "." + destD;
     }
 
-    public int getMicrosecondsRTT() {
+    public int getMicrosecondRTT() {
         float rtt_ = rtt;
         return (int)(rtt_*1000);
+    }
+
+    public static PingData transferToRoutersPing(TraceData traceData, String suffix) {
+        PingData pingData = new PingData();
+        String responseIp = traceData.getResponseIp();
+        String[] split = responseIp.split("\\.");
+        pingData.setHost(traceData.getHost());
+        pingData.setDestA(split[0]);
+        pingData.setDestB(split[1]);
+        pingData.setDestC(split[2]);
+        pingData.setDestD(split[3]);
+        pingData.setProtocol(traceData.getProtocol());
+        pingData.setRound(traceData.getRound());
+        pingData.setMeasurementPrefix(traceData.getMeasurementPrefix() + suffix);
+        pingData.setRtt(traceData.getRtt());
+        pingData.setTime(traceData.getTime());
+        pingData.setCountry(traceData.getCountry());
+        pingData.setRegion(traceData.getRegion());
+        pingData.setCity(traceData.getCity());
+        return pingData;
     }
 }
