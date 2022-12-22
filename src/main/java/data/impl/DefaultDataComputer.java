@@ -12,7 +12,6 @@ import pojo.compute.Country;
 import pojo.compute.NetSegment;
 import pojo.compute.Region;
 import store.Writeable;
-import store.impl.InfluxdbStore;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -26,7 +25,7 @@ public class DefaultDataComputer implements MeasurementDataComputer {
 
     public DefaultDataComputer() {
         this.lock = new ReentrantLock();
-        this.store = Writeable.getDefaultWriteable();
+        this.store = Writeable.newDefaultWriteable();
     }
 
     @Override

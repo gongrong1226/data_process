@@ -1,6 +1,5 @@
 package net;
 
-import com.lmax.disruptor.EventTranslator;
 import com.lmax.disruptor.RingBuffer;
 import com.lmax.disruptor.dsl.Disruptor;
 import data.DataQueue;
@@ -10,14 +9,12 @@ import exception.DataTypeException;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.util.ReferenceCountUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pojo.DisruptorEvent;
-import pojo.MeasurementData;
 import pojo.PingData;
 import pojo.TraceData;
-
-import java.util.Arrays;
 
 public class MeasurementDataHandler extends ChannelInboundHandlerAdapter {
     private String buffer;
@@ -39,8 +36,12 @@ public class MeasurementDataHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
-        if (msg != null) {
-            ByteBuf buf = (ByteBuf) msg;
+        if (msg == null) {
+            logger.error("null");
+            return;
+        }
+        ByteBuf buf = (ByteBuf) msg;
+        try{
             int i = buf.readableBytes();
             byte[] arr = new byte[i];
             buf.readBytes(arr);
@@ -50,7 +51,7 @@ public class MeasurementDataHandler extends ChannelInboundHandlerAdapter {
             try {
                 DisruptorEvent dataSlot = ringBuffer.get(seq);
                 String line = new String(arr);
-                logger.info(line);
+//                logger.info(line);
                 MeasurementDataResolver resolver = new DefaultDataResolver();
                 Object result = resolver.resolveLineData(line);
                 if (result instanceof PingData ping) {
@@ -66,6 +67,8 @@ public class MeasurementDataHandler extends ChannelInboundHandlerAdapter {
                 //发布
                 ringBuffer.publish(seq);
             }
+        } finally {
+            ReferenceCountUtil.release(msg);
         }
     }
 

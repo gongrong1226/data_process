@@ -36,9 +36,9 @@ public class ASNFileDB implements IP2ASN {
     private static int COUNTRY_CODE_IDX = 3;
     private static int AS_DESCRIPTION_IDX = 3;
 
-    private volatile static ASNFileDB defaultASNFileDB;
-
     private static final Logger logger = LoggerFactory.getLogger(ASNFileDB.class);
+
+    private volatile static ASNFileDB defaultASNFileDB;
 
     private final File dbFile;
 

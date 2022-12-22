@@ -57,35 +57,7 @@ public class QuestTracerouteReader implements TracerouteReader {
 
     @Override
     public List<Object> readTraceroute(String IP) {
-        List<Object> result = new ArrayList<>();
-        Connection connection = null;
-        try {
-            connection = dataSource.getConnection();
-            String sql = "SELECT * FROM '$TABLE_NAME' where ip=?;";
-            sql = sql.replace("$TABLE_NAME", table);
-            try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-                preparedStatement.setString(1, IP);
-                try (ResultSet rs = preparedStatement.executeQuery()) {
-                    while (rs.next()) {
-                        // 没到达的就不考虑
-                        if (!rs.getBoolean(ARRIVED_COLUMN)) {
-                            continue;
-                        }
-                        result.add(rs.getString(TRACEROUTE_COLUMN));
-                    }
-                }
-            }
-        } catch (SQLException throwables) {
-            logger.error(String.format("query IP=%s, table=%s, error=%s", IP, table, throwables));
-        } finally {
-            try {
-                if (connection != null)
-                    connection.close();
-            } catch (Throwable throwables) {
-                logger.error(String.format("close connection error=%s", throwables));
-            }
-        }
-        return result;
+        return readTraceroute(IP, 60*24*366*2);
     }
 
     @Override
@@ -115,7 +87,10 @@ public class QuestTracerouteReader implements TracerouteReader {
                 }
             }
         } catch (SQLException throwables) {
-            logger.error(String.format("query IP=%s, table=%s, error=%s", IP, table, throwables));
+            // 表不存在先不爆出来
+            if (!throwables.getMessage().contains("table does not exist")) {
+                logger.error(String.format("query IP=%s, table=%s, error=%s", IP, table, throwables));
+            }
         } finally {
             try {
                 if (connection != null)

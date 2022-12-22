@@ -3,8 +3,6 @@ package data;
 import base.Constants;
 import base.JsonUtil;
 import com.lmax.disruptor.WorkHandler;
-import dao.TraceDataWriter;
-import dao.tracefiledb.TraceDataFileWriter;
 import data.impl.DefaultDataComputer;
 import data.impl.ThreeLevelDataCollector;
 import division.Assessment;
@@ -20,7 +18,6 @@ import pojo.compute.Country;
 import pojo.compute.NetSegment;
 import pojo.compute.Region;
 import store.Writeable;
-import store.impl.InfluxdbStore;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -61,7 +58,7 @@ public class DataQueueWorker implements WorkHandler<DisruptorEvent> {
     public DataQueueWorker() {
         this.rawData = new ConcurrentHashMap<>();
         this.lock = new ReentrantLock();
-        this.writer = Writeable.getDefaultWriteable();
+        this.writer = Writeable.newDefaultWriteable();
         this.dataCollector = new ThreeLevelDataCollector();
         this.computer = new DefaultDataComputer();
     }
@@ -72,7 +69,7 @@ public class DataQueueWorker implements WorkHandler<DisruptorEvent> {
         this.lock = lock;
         this.dataCollector = new ThreeLevelDataCollector();
         this.computer = new DefaultDataComputer();
-        this.writer = Writeable.getDefaultWriteable();
+        this.writer = Writeable.newDefaultWriteable();
     }
 
     /**
@@ -86,7 +83,7 @@ public class DataQueueWorker implements WorkHandler<DisruptorEvent> {
 
     @Override
     public void onEvent(DisruptorEvent event) {
-        logger.info("get data: "+event);
+//        logger.info("get data: "+event);
         MeasurementData data = event.getData();
         writer.writeDataByPojo(data);
         if (onlyWriteIntoDB(data)) {
@@ -114,23 +111,24 @@ public class DataQueueWorker implements WorkHandler<DisruptorEvent> {
             lock.lock();
             try {
             //数据分类，分类标准是国家，省份，城市，网段
-                String country = pingData.getCountry();
-                String region = pingData.getRegion();
-                String city = pingData.getCity();
-                String ip = pingData.getHost();
-                Float rtt = pingData.getRtt();
-                String[] split = ip.split("\\.");
-                String seg = split[0] + "." + split[1] + "." + split[2] + ".0";
-                Object countryCollector = this.rawData.getOrDefault(country, new Country(country, new SynchronizedDescriptiveStatistics()));
-                Object regionCollector = this.rawData.getOrDefault(region, new Region(country, region, new SynchronizedDescriptiveStatistics()));
-                Object cityCollector = this.rawData.getOrDefault(city, new City(country, region, city, new SynchronizedDescriptiveStatistics()));
-                Object segCollector = this.rawData.getOrDefault(seg, new NetSegment(city, region, city, seg, new SynchronizedDescriptiveStatistics()));
-                this.dataCollector.collect(rtt, countryCollector, regionCollector, cityCollector, segCollector);
+//                String country = pingData.getCountry();
+//                String region = pingData.getRegion();
+//                String city = pingData.getCity();
+//                String ip = pingData.getHost();
+//                Float rtt = pingData.getRtt();
+//                String[] split = ip.split("\\.");
+//                String seg = split[0] + "." + split[1] + "." + split[2] + ".0";
+//                Object countryCollector = this.rawData.getOrDefault(country, new Country(country, new SynchronizedDescriptiveStatistics()));
+//                Object regionCollector = this.rawData.getOrDefault(region, new Region(country, region, new SynchronizedDescriptiveStatistics()));
+//                Object cityCollector = this.rawData.getOrDefault(city, new City(country, region, city, new SynchronizedDescriptiveStatistics()));
+//                Object segCollector = this.rawData.getOrDefault(seg, new NetSegment(city, region, city, seg, new SynchronizedDescriptiveStatistics()));
+//                this.dataCollector.collect(rtt, countryCollector, regionCollector, cityCollector, segCollector);
             } finally {
                 lock.unlock();
             }
         }
         if (data.getType().equals(Constants.TRACE_DATA)) {
+            // TODO 生成routers的测量任务
             TraceData traceData = (TraceData) data;
             RoundControl roundControl = RoundControl.getRoundControl(traceData.getMeasurementPrefix());
             // 用作拓扑构建

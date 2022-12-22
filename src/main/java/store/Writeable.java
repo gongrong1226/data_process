@@ -15,7 +15,7 @@ public interface Writeable {
 
     void writeDataByPoint(Point data);
 
-    static Writeable getDefaultWriteable() {
+    static Writeable newDefaultWriteable() {
         return new QuestdbStore();
     }
 }

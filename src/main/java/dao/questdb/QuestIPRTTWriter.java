@@ -86,11 +86,12 @@ public class QuestIPRTTWriter implements Writeable {
                 table.at(nanos);
                 return;
             } catch (Throwable t) {
-                logger.info("data=" + data + "; throwable=" + t);
-            } finally {
-                // 有可能是连接异常
-                sender = Sender.builder().address(address).build();
-                logger.info("retry with new connection");
+                logger.error("data=" + data + "; throwable=" + t);
+                if (retry >= 0) {
+                    // 有可能是连接异常
+                    sender = Sender.builder().address(address).build();
+                    logger.info("retry with new connection");
+                }
             }
         }
     }
