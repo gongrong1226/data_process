@@ -4,19 +4,15 @@ import base.Constants;
 import base.JsonUtil;
 import com.lmax.disruptor.WorkHandler;
 import data.impl.DefaultDataComputer;
+import data.impl.DefaultDataResolver;
 import data.impl.ThreeLevelDataCollector;
 import division.Assessment;
-import org.apache.commons.math3.stat.descriptive.SynchronizedDescriptiveStatistics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pojo.DisruptorEvent;
 import pojo.MeasurementData;
 import pojo.PingData;
 import pojo.TraceData;
-import pojo.compute.City;
-import pojo.compute.Country;
-import pojo.compute.NetSegment;
-import pojo.compute.Region;
 import store.Writeable;
 
 import java.util.Map;
@@ -51,6 +47,11 @@ public class DataQueueWorker implements WorkHandler<DisruptorEvent> {
     private Writeable writer;
     private Logger logger = LoggerFactory.getLogger(DataQueueWorker.class);
 
+    /**
+     * 线程安全，单实例
+     */
+    private static final MeasurementDataResolver resolver = new DefaultDataResolver();
+
 //    private static final TraceDataWriter traceDataWriter = TraceDataFileWriter.defaultTraceDataFileWriter();
 
     public static final String ROUTERS_MEASUREMENT_SUFFIX = "_routers";
@@ -74,6 +75,7 @@ public class DataQueueWorker implements WorkHandler<DisruptorEvent> {
 
     /**
      * 针对这些路由器的测量任务，不会触发针对这个任务的集合划分和网络质量评估，所以只有数据存储操作,使用字符串"_routers"做判断。
+     *
      * @param measurementData m
      * @return b
      */
@@ -81,10 +83,23 @@ public class DataQueueWorker implements WorkHandler<DisruptorEvent> {
         return measurementData.getMeasurementPrefix().endsWith(ROUTERS_MEASUREMENT_SUFFIX);
     }
 
+    private MeasurementData parseData(byte[] arr) {
+        String line = new String(arr);
+        logger.info(line);
+        return (MeasurementData) resolver.resolveLineData(line);
+    }
+
     @Override
     public void onEvent(DisruptorEvent event) {
-//        logger.info("get data: "+event);
-        MeasurementData data = event.getData();
+        if (event.getOriginalByte() == null) {
+            logger.error("event.getOriginalByte() == null");
+            return;
+        }
+        MeasurementData data = parseData(event.getOriginalByte());
+        if (data == null) {
+            logger.error("data == null");
+            return;
+        }
         writer.writeDataByPojo(data);
         if (onlyWriteIntoDB(data)) {
             return;
@@ -110,7 +125,7 @@ public class DataQueueWorker implements WorkHandler<DisruptorEvent> {
             }
             lock.lock();
             try {
-            //数据分类，分类标准是国家，省份，城市，网段
+                //数据分类，分类标准是国家，省份，城市，网段
 //                String country = pingData.getCountry();
 //                String region = pingData.getRegion();
 //                String city = pingData.getCity();

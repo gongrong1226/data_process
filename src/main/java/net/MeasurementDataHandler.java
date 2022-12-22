@@ -16,9 +16,14 @@ import pojo.DisruptorEvent;
 import pojo.PingData;
 import pojo.TraceData;
 
+import java.util.concurrent.atomic.AtomicLong;
+
 public class MeasurementDataHandler extends ChannelInboundHandlerAdapter {
     private String buffer;
     private DataQueue dataQueue;
+
+    private static final AtomicLong recvCount = new AtomicLong();
+
     private final Logger logger = LoggerFactory.getLogger(MeasurementDataHandler.class);
 
     @Override
@@ -40,8 +45,12 @@ public class MeasurementDataHandler extends ChannelInboundHandlerAdapter {
             logger.error("null");
             return;
         }
+        long l = recvCount.addAndGet(1);
+        if (l % 500_000 == 0) {
+            logger.info("Received Counter=" + l);
+        }
         ByteBuf buf = (ByteBuf) msg;
-        try{
+        try {
             int i = buf.readableBytes();
             byte[] arr = new byte[i];
             buf.readBytes(arr);
@@ -50,18 +59,8 @@ public class MeasurementDataHandler extends ChannelInboundHandlerAdapter {
             long seq = ringBuffer.next();
             try {
                 DisruptorEvent dataSlot = ringBuffer.get(seq);
-                String line = new String(arr);
-//                logger.info(line);
-                MeasurementDataResolver resolver = new DefaultDataResolver();
-                Object result = resolver.resolveLineData(line);
-                if (result instanceof PingData ping) {
-                    dataSlot.setData(ping);
-                } else if (result instanceof TraceData trace) {
-                    dataSlot.setData(trace);
-                } else {
-                    throw new DataTypeException();
-                }
-            } catch (DataTypeException e) {
+                dataSlot.setOriginalByte(arr);
+            } catch (Exception e) {
                 logger.error(e.getMessage());
             } finally {
                 //发布
